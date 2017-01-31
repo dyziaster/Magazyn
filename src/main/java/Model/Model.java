@@ -12,29 +12,41 @@ import java.util.List;
 
 public class Model {
 
-	static final String JDBC_DRIVER = "com.mysql.cj.jdbc.Driver";
-	static String DATABASE = "cds_michal";
-	static final String TIMEZONE = "?serverTimezone=UTC";
-	static final String DB_URL = "jdbc:mysql://127.0.0.1:3306/"+DATABASE+TIMEZONE;
+	private static final String JDBC_DRIVER = "com.mysql.cj.jdbc.Driver";
+	private static String DATABASE = "cds_michal";
+	private static final String TIMEZONE = "?serverTimezone=UTC";
+	private static final String DB_URL = "jdbc:mysql://127.0.0.1:3306/" + DATABASE + TIMEZONE;
 
 	// Database credentials
-	static final String USER = "michal";
-	static final String PASS = "dyzio";
+	private static final String USER = "michal";
+	private static final String PASS = "dyzio";
 
 	private List<String> tableNames;
 
-	Connection conn = null;
+	private Connection conn = null;
 
-	public Connection connectToDatabase() throws ClassNotFoundException, SQLException {
+	public boolean connectToDatabase() {
+		
+		boolean connected = false;
 
-		Class.forName(JDBC_DRIVER);
+		try {
+			Class.forName(JDBC_DRIVER);
 
-		// STEP 3: Open a connection
-		System.out.println("Connecting to a selected database...");
-		conn = DriverManager.getConnection(DB_URL, USER, PASS);
-		System.out.println("Connected database successfully...");
-
-		return conn;
+			// STEP 3: Open a connection
+			System.out.println("Connecting to a selected database...");
+			conn = DriverManager.getConnection(DB_URL, USER, PASS);
+			connected = true;
+			System.out.println("Connected database successfully...");
+			
+		} catch (ClassNotFoundException e) {
+			System.out.println("CLASS NOT FOUND EXCEPTION ............");
+			e.printStackTrace();
+		} catch (SQLException ee) {
+			System.out.println("sql EXCEPTION ............");
+			ee.printStackTrace();
+		}
+		
+		return connected;
 
 	}
 
@@ -47,19 +59,19 @@ public class Model {
 			rs = stmt.executeQuery(query);
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
-			//e.printStackTrace();
-			System.out.println("MODEL.QUERYDATABASE "+e.getMessage());
+			// e.printStackTrace();
+			System.out.println("MODEL.QUERYDATABASE " + e.getMessage());
 		}
-		//System.out.println("query ok...");
+		// System.out.println("query ok...");
 
 		return rs;
 	}
 
 	public Object[] getTableNames() throws SQLException {
-		String querry = "SELECT table_name FROM information_schema.tables where table_schema='"+DATABASE+"'";
-		System.out.println("STATEMENT = "+querry);
+		String querry = "SELECT table_name FROM information_schema.tables where table_schema='" + DATABASE + "'";
+		System.out.println("STATEMENT = " + querry);
 		ResultSet rs = queryDatabase(querry);
-		if(rs==null)
+		if (rs == null)
 			System.out.println("RS IS NULL ....");
 		tableNames = tableNamesFromMap(resultSetToArrayList(rs));
 		return tableNames.toArray();

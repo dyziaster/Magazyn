@@ -5,15 +5,20 @@ import java.awt.EventQueue;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import java.awt.BorderLayout;
+import java.awt.Dimension;
+
 import javax.swing.JMenuBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTable;
+import javax.swing.JTextArea;
 import javax.swing.JSeparator;
 import javax.swing.JTextPane;
 import javax.swing.ListSelectionModel;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableColumn;
+import javax.swing.table.TableColumnModel;
 
 import Controller.Controller;
 import Controller.ListListener;
@@ -22,14 +27,20 @@ import javax.swing.JList;
 import java.awt.FlowLayout;
 import javax.swing.BoxLayout;
 import java.awt.GridLayout;
+import java.awt.Toolkit;
 import java.awt.event.ActionListener;
 
 import javax.swing.JMenuItem;
 import javax.swing.JMenu;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
+import javax.swing.ScrollPaneConstants;
+import javax.swing.JButton;
 
 public class App extends JFrame {
+
+	private static final int sizeConstant = 2;
+
 	private static App window;
 	private JList list;
 	private JTable table;
@@ -37,14 +48,26 @@ public class App extends JFrame {
 	private JLabel lbl;
 	private DefaultTableModel dtm;
 	private JTextField textField;
-	
-	public void setTextListener(ActionListener a){
-		textField.addActionListener(a);
-	}
-	
-	public void setLabelText(String text){
-		lbl.setText(text);
-	}
+	private TableColumnModel tcm;
+	private JTextField textField_1;
+
+	private JPanel panelMain;
+	private JPanel panelTable;
+	private JPanel panelConsole;
+	private JTextField editTextField;
+	// public void setTextListener(ActionListener a){
+	// textField.addActionListener(a);
+	// }
+
+	private String selectedCellString;
+	private JButton editBtn;
+	private JButton newBtn;
+	private JButton cancelBtn;
+	private JButton saveBtn;
+
+	// public void setLabelText(String text){
+	// lbl.setText(text);
+	// }
 
 	public void setListListener(ListSelectionListener lsm) {
 		list.getSelectionModel().addListSelectionListener(lsm);
@@ -54,24 +77,33 @@ public class App extends JFrame {
 		controller = c;
 	}
 
-	public void setTableData(Object[][] data, Object[] columns) {
+	public void setTableData(Object[][] data, Object[] columns) { // null
+																	// pointers
+																	// mass of
+																	// them
 
 		DefaultTableModel tableModel = (DefaultTableModel) table.getModel();
 
-
-		 String dataa[][] = { { "Row1-asdasColumn1", "Row1-Column2", "Row1-Column3" },
-				{ "Row2-Column1", "Row2-Column2", "Row2-Column3" } };
-		 String columnss[] = { "Column asdasOne", "Column Two", "Column Three" };
-		
 		tableModel.setDataVector(data, columns);
+		TableColumnModel model = table.getColumnModel();
+		int lmax = 2;
+		for (int i = 0; i < tcm.getColumnCount(); i++) {
+			lmax = columns[i].toString().length();
+
+			for (int j = 0; j < tableModel.getRowCount(); j++) {
+				int lmaxx = tableModel.getValueAt(j, i).toString().length();
+				if (lmaxx > lmax)
+					lmax = lmaxx;
+			}
+			model.getColumn(i).setPreferredWidth(lmax * 8);
+		}
+
 		tableModel.fireTableDataChanged();
-		
-		// repaint
 	}
 
 	public void setTableList(Object[] list) {
 		this.list.setListData(list);
-		
+
 	}
 
 	/**
@@ -89,12 +121,11 @@ public class App extends JFrame {
 	/**
 	 * Create the application.
 	 */
-	
+
 	public App() {
 		initialize();
 
 	}
-
 
 	/**
 	 * Initialize the contents of the frame.
@@ -102,12 +133,17 @@ public class App extends JFrame {
 	private void initialize() {
 
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 506, 378);
+		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+		setMinimumSize(new Dimension(screenSize.width / sizeConstant, screenSize.height / sizeConstant));
 
-		JPanel panel = new JPanel();
-		this.getContentPane().add(panel, BorderLayout.CENTER);
+		panelMain = new JPanel();
+		panelConsole = new JPanel();
+		JTextArea jta = new JTextArea();
+		jta.setPreferredSize(new Dimension(0, 200));
+
+		panelTable = new JPanel();
+
 		String sampleTab³es[] = { "tab1", "tab2", "tab3" };
-		panel.setLayout(null);
 
 		Object sampleData[][] = { { "Row1-Column1", "Row1-Column2", "Row1-Column3" },
 				{ "Row2-Column1", "Row2-Column2", "Row2-Column3" } };
@@ -118,26 +154,15 @@ public class App extends JFrame {
 		lsm.setSelectionMode(lsm.SINGLE_SELECTION);
 		// lsm.addListSelectionListener(controller.getListListener());
 		JScrollPane scrollList = new JScrollPane(list);
-		scrollList.setBounds(1, 0, 100, 241);
-		panel.add(scrollList);
 
-		JTabbedPane tabbedPane = new JTabbedPane(JTabbedPane.TOP);
-		tabbedPane.setBounds(136, 0, 250, 241);
-		panel.add(tabbedPane);
 		dtm = new DefaultTableModel(sampleData, sampleColumns);
 		table = new JTable(dtm);
+		tcm = table.getColumnModel();
+		table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+		table.setColumnSelectionAllowed(false);
+		table.setRowSelectionAllowed(false);
+		table.setCellSelectionEnabled(true);
 		JScrollPane scrollTable = new JScrollPane(table);
-		tabbedPane.addTab("New tab", null, scrollTable, null);
-		
-		lbl = new JLabel("New label");
-		lbl.setBounds(388, 75, 46, 26);
-		panel.add(lbl);
-		
-		textField = new JTextField();
-		textField.setBounds(136, 264, 250, 20);
-		textField.setActionCommand("text");
-		panel.add(textField);
-		textField.setColumns(10);
 
 		JMenuBar menuBar = new JMenuBar();
 		this.setJMenuBar(menuBar);
@@ -159,5 +184,85 @@ public class App extends JFrame {
 
 		JMenu menuHelp = new JMenu("Help");
 		menuBar.add(menuHelp);
+
+		editBtn = new JButton("Edit");
+		editBtn.setActionCommand("edit");
+		panelConsole.add(editBtn);
+
+		newBtn = new JButton("New");
+		panelConsole.add(newBtn);
+
+		cancelBtn = new JButton("Cancel");
+		panelConsole.add(cancelBtn);
+
+		saveBtn = new JButton("Save");
+		panelConsole.add(saveBtn);
+
+		editTextField = new JTextField();
+		panelConsole.add(editTextField);
+		editTextField.setColumns(10);
+
+		// ADDING SCROLLPANE TO PANEL , EXTENDING NOT WORKING
+		// panelTable.add(scrollTable);
+		// panelTable.add(panelEditNew);
+		// panelTable.add(panelCancelSave);
+
+		BorderLayout mgr = new BorderLayout();
+		mgr.setVgap(15);
+		panelMain.setLayout(mgr);
+		panelMain.add(scrollTable, BorderLayout.CENTER);
+		// panelMain.add(panelTable,BorderLayout.CENTER);
+		panelMain.add(scrollList, BorderLayout.WEST);
+		panelMain.add(panelConsole, BorderLayout.PAGE_END);
+
+		this.setContentPane(panelMain);
+		this.setSize(800, 600);
+
 	}
+	
+	public void setBtnListeners(ActionListener listener){
+		
+		editBtn.addActionListener(listener);
+		saveBtn.addActionListener(listener);
+		cancelBtn.addActionListener(listener);
+		newBtn.addActionListener(listener);
+		
+	}
+
+	public int getSelectedRow() {
+		return table.getSelectedRow();
+	}
+
+	public int getSelectedColumn() {
+		return table.getSelectedColumn();
+	}
+	
+	public void setSelectedCellString(String s){
+		selectedCellString = s;
+	}
+	
+	public void setTextField(String s){
+		editTextField.setText(s);
+	}
+
+	public void writeCellToText() {
+
+		int row = table.getSelectedRow();
+		int column = table.getSelectedColumn();
+
+		if (row < 0 || column < 0) {
+			System.out.println("ROWS COLS SELECTED........" + row + " " + column +"...<0.....EXITING");
+			return;
+		}
+		System.out.println("ROWS COLS SELECTED........" + row + " " + column);
+		editTextField.setText(dtm.getValueAt(row, column).toString());
+
+	}
+
+	public void setTableListener(ListSelectionListener tableListener) {
+		table.getColumnModel().getSelectionModel().addListSelectionListener(tableListener);
+		table.getSelectionModel().addListSelectionListener(tableListener);
+
+	}
+
 }

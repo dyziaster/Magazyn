@@ -33,7 +33,7 @@ public class ListListener implements ListSelectionListener {
 			int maxIndex = lsm.getMaxSelectionIndex();
 			for (int i = minIndex; i <= maxIndex; i++) {
 				if (lsm.isSelectedIndex(i)) {
-					appFrame.setLabelText(String.valueOf(i));
+				//	appFrame.setLabelText(String.valueOf(i));
 					String tableName = model.getTableNamesList().get(i);
 					ResultSet rs = model.queryDatabase("SELECT * FROM "+tableName);
 					List<HashMap<String,Object>> listqyer =Model.resultSetToArrayList(rs); 

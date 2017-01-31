@@ -29,16 +29,8 @@ public class Test {
 	public static void createGui() throws ClassNotFoundException, SQLException{
 		Model m = new Model();
 		App app = new App();
+		new Controller(m,app);
 		
-		Controller c = new Controller(m,app);
-		c.onStart();
-		
-		app.setVisible(true);
-		
-		if(javax.swing.SwingUtilities.isEventDispatchThread())
-			System.out.println("is eevent dispatch thread..........");
-		else
-			System.out.println("is NOT eevent dispatch thread..........");
 		
 	}
 }

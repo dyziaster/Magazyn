@@ -3,12 +3,36 @@ package Controller;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-public class TableListener implements ActionListener{
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 
-	@Override
-	public void actionPerformed(ActionEvent arg0) {
-		System.out.println(arg0.getSource());
-		
+import FrontEnd.App;
+import Model.Model;
+
+public class TableListener implements ListSelectionListener {
+	private App appFrame;
+	private Model model;
+
+	public TableListener(Model m, App appFrame) {
+
+		this.appFrame = appFrame;
+		this.model = m;
 	}
+
+
+		@Override
+		public void valueChanged(ListSelectionEvent event) {
+			
+			 if (event.getValueIsAdjusting()) {
+	                return;
+	            }	
+			
+
+			
+		}
+		
+		
+       
+	
 
 }
