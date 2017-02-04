@@ -55,8 +55,9 @@ public class BtnListener implements ActionListener {
 			JComboBox<Object> cb = (JComboBox<Object>) e.getSource();
 			state = State.editing;
 			app.setTextField(cb.getSelectedItem());
+			app.selectTextField();
 			
-		} else if (command.equals("textField") && state == state.editing) {
+		} else if (command.equals("textField") && state == state.editing) { // if string is '' does it need to paste null to database iinstead of ''
 			String record = app.getTextField();
 			String colName = app.getSelectedCellColumnName();
 			int idNumber = model.getIdnumber(app.getSelectedRow());

@@ -69,7 +69,7 @@ public class App extends JFrame {
 	private JButton newBtn;
 	private JButton cancelBtn;
 	private JButton saveBtn;
-	
+
 	private String currentRecordValue = "";
 	private JComboBox cBox;
 
@@ -90,16 +90,18 @@ public class App extends JFrame {
 																	// mass of
 																	// them
 
-		DefaultTableModel tableModel = (DefaultTableModel) table.getModel();
+		DefaultTableModel tableModel = (DefaultTableModel) table.getModel(); /////////// can it go with this.getvalueat ???
 
 		tableModel.setDataVector(data, columns);
 		TableColumnModel model = table.getColumnModel();
 		int lmax = 2;
 		for (int i = 0; i < tcm.getColumnCount(); i++) {
 			lmax = columns[i].toString().length();
-
+			int lmaxx = 0;
 			for (int j = 0; j < tableModel.getRowCount(); j++) {
-				int lmaxx = tableModel.getValueAt(j, i).toString().length();
+				Object value = this.getValueAt(j, i);
+				if (value != null)
+					lmaxx = value.toString().length();
 				if (lmaxx > lmax)
 					lmax = lmaxx;
 			}
@@ -226,7 +228,7 @@ public class App extends JFrame {
 		// panelMain.add(panelTable,BorderLayout.CENTER);
 		panelMain.add(scrollList, BorderLayout.WEST);
 		panelMain.add(panelConsole, BorderLayout.PAGE_END);
-		
+
 		cBox = new JComboBox();
 		cBox.setActionCommand("cBox");
 		panelConsole.add(cBox);
@@ -235,20 +237,20 @@ public class App extends JFrame {
 		this.setSize(800, 600);
 
 	}
-	
-	public Set<Object> getColumnRecords(){
+
+	public Set<Object> getColumnRecords() {
 		Set<Object> list = new HashSet<>();
-		int column = table.getSelectedColumn();  
-		
-		for(int i=0;i<table.getRowCount();i++){
-			list.add(table.getValueAt(i, column).toString());
+		int column = table.getSelectedColumn();
+
+		for (int i = 0; i < table.getRowCount(); i++) {
+			list.add(this.getValueAt(i, column).toString());
 		}
-		
+
 		return list;
 	}
-	
-	public void setBtnListeners(ActionListener listener){
-		
+
+	public void setBtnListeners(ActionListener listener) {
+
 		editBtn.addActionListener(listener);
 		saveBtn.addActionListener(listener);
 		cancelBtn.addActionListener(listener);
@@ -263,38 +265,42 @@ public class App extends JFrame {
 
 	public int getSelectedColumn() {
 		return table.getSelectedColumn();
-	}	
-	
-	public String getSelectedCellString() {
-		return (table.getValueAt(table.getSelectedRow(), table.getSelectedColumn()).toString());
 	}
-	
+
+	public String getSelectedCellString() {
+		return (this.getValueAt(table.getSelectedRow(), table.getSelectedColumn()).toString());
+	}
+
 	public void setSelectedCellString(String selectedCellString) {
 		this.selectedCellString = selectedCellString;
 	}
 
-	public String getSelectedCellColumnName(){
+	public String getSelectedCellColumnName() {
 		return table.getColumnName(getSelectedColumn());
 	}
 
-	public void setTextField(String s){
+	public void setTextField(String s) {
 		editTextField.setText(s);
 	}
-	
-	public void setTextField(Object s){
+
+	public void setTextField(Object s) {
 		editTextField.setText(s.toString());
 	}
-	
-	public String getTextField(){
+
+	public String getTextField() {
 		return editTextField.getText();
 	}
 
 	public String getCurrentRecordValue() {
 		return currentRecordValue;
 	}
-	
-	public String getValueAt(int row, int column){
-		return dtm.getValueAt(row, column).toString();
+
+	public String getValueAt(int row, int column) {
+		Object value = dtm.getValueAt(row, column);
+		if (value == null)
+			return "";
+		else
+			return value.toString();
 	}
 
 	public void writeCellToText() {
@@ -303,19 +309,23 @@ public class App extends JFrame {
 		int column = table.getSelectedColumn();
 
 		if (row < 0 || column < 0) {
-			System.out.println("ROWS COLS SELECTED........" + row + " " + column +"...<0.....EXITING");
+			System.out.println("ROWS COLS SELECTED........" + row + " " + column + "...<0.....EXITING");
 			return;
 		}
-		
+
 		int id_ = getIdNumber(row);
 		System.out.println("ROWS COLS SELECTED........" + row + " " + column);
 		editTextField.setText(this.getValueAt(row, column));
+		this.selectTextField();
+	}
+	
+	public void selectTextField(){
 		editTextField.grabFocus();
 		editTextField.selectAll();
 	}
 
 	private int getIdNumber(int row) {
-		
+
 		return 0;
 	}
 
@@ -333,13 +343,13 @@ public class App extends JFrame {
 	}
 
 	public void populateCbox(Iterable<Object> columnRecords) {
-		for(Object o : columnRecords){
+		for (Object o : columnRecords) {
 			cBox.addItem(o);
 		}
-		
+
 	}
-	
-	public void clearCbox(){
+
+	public void clearCbox() {
 		cBox.removeAllItems();
 	}
 
@@ -348,6 +358,7 @@ public class App extends JFrame {
 		table.setColumnSelectionAllowed(false);
 		table.setEnabled(false);
 	}
+
 	public void turnOnTableSelection() {
 		table.setRowSelectionAllowed(true);
 		table.setColumnSelectionAllowed(true);
