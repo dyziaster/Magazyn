@@ -3,6 +3,8 @@ package Controller;
 import java.awt.event.ActionListener;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.List;
 
 import javax.swing.JFrame;
 import javax.swing.event.ListSelectionListener;
@@ -45,7 +47,7 @@ public class Controller {
 	}
 
 	public ResultSet queryDatabase(String query) throws SQLException {
-		return model.queryDatabase(query);
+		return model.executeQuery(query);
 	}
 
 	public void onStart() {
@@ -86,6 +88,15 @@ public class Controller {
 	public void setView(App app) {
 		this.appFrame = app;
 		System.out.println(app);
+	}
+	
+	public static void refreshTables(Model model, App appFrame){
+		ResultSet rs = model.executeQuery("SELECT * FROM "+model.getLastSelectedTable());
+		List<HashMap<String,Object>> listqyer =Model.resultSetToArrayList(rs); 
+		System.out.println(listqyer);
+		Object[] columnNames = Model.getColumnNamesFromListMap(listqyer);
+		Object[][] data = Model.getDataFromListMap(listqyer);
+		appFrame.setTableData(data, columnNames);
 	}
 
 }

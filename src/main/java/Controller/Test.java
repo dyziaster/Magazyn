@@ -25,6 +25,7 @@ public class Test {
 		    }
 		});
 	}
+	// BUG IN UPDATE THERE COLUMN HAS MORE THAN 1 SAME VALUES <--------------------------------------
 	
 	public static void createGui() throws ClassNotFoundException, SQLException{
 		Model m = new Model();

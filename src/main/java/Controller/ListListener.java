@@ -35,10 +35,12 @@ public class ListListener implements ListSelectionListener {
 				if (lsm.isSelectedIndex(i)) {
 				//	appFrame.setLabelText(String.valueOf(i));
 					String tableName = model.getTableNamesList().get(i);
-					ResultSet rs = model.queryDatabase("SELECT * FROM "+tableName);
+					model.setLastSelectedTable(tableName);
+					ResultSet rs = model.executeQuery("SELECT * FROM "+tableName);
 					List<HashMap<String,Object>> listqyer =Model.resultSetToArrayList(rs); 
 					System.out.println(listqyer);
 					Object[] columnNames = Model.getColumnNamesFromListMap(listqyer);
+					model.setColumnNames(columnNames);
 					Object[][] data = Model.getDataFromListMap(listqyer);
 					appFrame.setTableData(data, columnNames);
 					

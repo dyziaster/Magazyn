@@ -29,6 +29,10 @@ import javax.swing.BoxLayout;
 import java.awt.GridLayout;
 import java.awt.Toolkit;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import javax.swing.JMenuItem;
 import javax.swing.JMenu;
@@ -36,6 +40,7 @@ import javax.swing.JLabel;
 import javax.swing.JTextField;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 
 public class App extends JFrame {
 
@@ -64,6 +69,9 @@ public class App extends JFrame {
 	private JButton newBtn;
 	private JButton cancelBtn;
 	private JButton saveBtn;
+	
+	private String currentRecordValue = "";
+	private JComboBox cBox;
 
 	// public void setLabelText(String text){
 	// lbl.setText(text);
@@ -124,7 +132,6 @@ public class App extends JFrame {
 
 	public App() {
 		initialize();
-
 	}
 
 	/**
@@ -162,6 +169,7 @@ public class App extends JFrame {
 		table.setColumnSelectionAllowed(false);
 		table.setRowSelectionAllowed(false);
 		table.setCellSelectionEnabled(true);
+		table.getTableHeader().setReorderingAllowed(false);
 		JScrollPane scrollTable = new JScrollPane(table);
 
 		JMenuBar menuBar = new JMenuBar();
@@ -190,17 +198,21 @@ public class App extends JFrame {
 		panelConsole.add(editBtn);
 
 		newBtn = new JButton("New");
+		newBtn.setActionCommand("new");
 		panelConsole.add(newBtn);
 
 		cancelBtn = new JButton("Cancel");
 		panelConsole.add(cancelBtn);
+		cancelBtn.setActionCommand("cancel");
 
 		saveBtn = new JButton("Save");
+		saveBtn.setActionCommand("save");
 		panelConsole.add(saveBtn);
 
 		editTextField = new JTextField();
 		panelConsole.add(editTextField);
 		editTextField.setColumns(10);
+		editTextField.setActionCommand("textField");
 
 		// ADDING SCROLLPANE TO PANEL , EXTENDING NOT WORKING
 		// panelTable.add(scrollTable);
@@ -214,10 +226,25 @@ public class App extends JFrame {
 		// panelMain.add(panelTable,BorderLayout.CENTER);
 		panelMain.add(scrollList, BorderLayout.WEST);
 		panelMain.add(panelConsole, BorderLayout.PAGE_END);
+		
+		cBox = new JComboBox();
+		cBox.setActionCommand("cBox");
+		panelConsole.add(cBox);
 
 		this.setContentPane(panelMain);
 		this.setSize(800, 600);
 
+	}
+	
+	public Set<Object> getColumnRecords(){
+		Set<Object> list = new HashSet<>();
+		int column = table.getSelectedColumn();  
+		
+		for(int i=0;i<table.getRowCount();i++){
+			list.add(table.getValueAt(i, column).toString());
+		}
+		
+		return list;
 	}
 	
 	public void setBtnListeners(ActionListener listener){
@@ -226,7 +253,8 @@ public class App extends JFrame {
 		saveBtn.addActionListener(listener);
 		cancelBtn.addActionListener(listener);
 		newBtn.addActionListener(listener);
-		
+		editTextField.addActionListener(listener);
+		cBox.addActionListener(listener);
 	}
 
 	public int getSelectedRow() {
@@ -235,14 +263,38 @@ public class App extends JFrame {
 
 	public int getSelectedColumn() {
 		return table.getSelectedColumn();
+	}	
+	
+	public String getSelectedCellString() {
+		return (table.getValueAt(table.getSelectedRow(), table.getSelectedColumn()).toString());
 	}
 	
-	public void setSelectedCellString(String s){
-		selectedCellString = s;
+	public void setSelectedCellString(String selectedCellString) {
+		this.selectedCellString = selectedCellString;
 	}
-	
+
+	public String getSelectedCellColumnName(){
+		return table.getColumnName(getSelectedColumn());
+	}
+
 	public void setTextField(String s){
 		editTextField.setText(s);
+	}
+	
+	public void setTextField(Object s){
+		editTextField.setText(s.toString());
+	}
+	
+	public String getTextField(){
+		return editTextField.getText();
+	}
+
+	public String getCurrentRecordValue() {
+		return currentRecordValue;
+	}
+	
+	public String getValueAt(int row, int column){
+		return dtm.getValueAt(row, column).toString();
 	}
 
 	public void writeCellToText() {
@@ -254,9 +306,17 @@ public class App extends JFrame {
 			System.out.println("ROWS COLS SELECTED........" + row + " " + column +"...<0.....EXITING");
 			return;
 		}
+		
+		int id_ = getIdNumber(row);
 		System.out.println("ROWS COLS SELECTED........" + row + " " + column);
-		editTextField.setText(dtm.getValueAt(row, column).toString());
+		editTextField.setText(this.getValueAt(row, column));
+		editTextField.grabFocus();
+		editTextField.selectAll();
+	}
 
+	private int getIdNumber(int row) {
+		
+		return 0;
 	}
 
 	public void setTableListener(ListSelectionListener tableListener) {
@@ -265,4 +325,32 @@ public class App extends JFrame {
 
 	}
 
+	public void writeTextToCell() {
+		String text = editTextField.getText();
+		dtm.setValueAt(text, table.getSelectedRow(), table.getSelectedColumn());
+		editTextField.setText("");
+		dtm.fireTableDataChanged();
+	}
+
+	public void populateCbox(Iterable<Object> columnRecords) {
+		for(Object o : columnRecords){
+			cBox.addItem(o);
+		}
+		
+	}
+	
+	public void clearCbox(){
+		cBox.removeAllItems();
+	}
+
+	public void turnOffTableSelection() {
+		table.setRowSelectionAllowed(false);
+		table.setColumnSelectionAllowed(false);
+		table.setEnabled(false);
+	}
+	public void turnOnTableSelection() {
+		table.setRowSelectionAllowed(true);
+		table.setColumnSelectionAllowed(true);
+		table.setEnabled(true);
+	}
 }

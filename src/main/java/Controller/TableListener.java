@@ -26,8 +26,8 @@ public class TableListener implements ListSelectionListener {
 			 if (event.getValueIsAdjusting()) {
 	                return;
 	            }	
-			
-
+			 
+			 //appFrame.setTableElements();
 			
 		}
 		
