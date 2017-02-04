@@ -184,5 +184,36 @@ public class Model {
 		
 		return idString;
 	}
+	
+	public String getSqlValuesStringFromList(List<String> list, String tableName){
+		StringBuilder sb = new StringBuilder();
+		sb.append("INSERT INTO "+tableName+" VALUES (");
+		for(String s : list){
+			sb.append("'"+s+"',");
+		}
+		sb.deleteCharAt(sb.length()-1);
+		sb.append(");");
+		return sb.toString();
+	}
+
+	public String getSqlValuesStringFromList(List<String> list, String tableName, Object[] columnNames2) {
+		StringBuilder sb = new StringBuilder();
+		sb.append("INSERT INTO "+tableName+" (");
+		
+		for(Object s : columnNames2){
+			sb.append(""+s.toString()+",");
+		}
+		sb.deleteCharAt(sb.length()-1);
+		sb.append(") VALUES (");
+		
+		for(String s : list){
+			sb.append("'"+s+"',");
+		}
+		sb.deleteCharAt(sb.length()-1);
+		sb.append(");");
+		return sb.toString();
+	}
+	
+	
 
 }

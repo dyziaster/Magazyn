@@ -25,8 +25,6 @@ import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 
 import Controller.ListListener;
-import Entitys.Account;
-
 public class CustomLayout2 {
 
 	public static List<HashMap<String, Object>> resultSetToArrayList(ResultSet rs) throws SQLException {

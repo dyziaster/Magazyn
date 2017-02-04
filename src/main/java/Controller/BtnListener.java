@@ -27,7 +27,6 @@ public class BtnListener implements ActionListener {
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		String command = e.getActionCommand();
-		List<Object> list = null;
 		if (command.equals("edit") && state != State.editing) {
 			System.out.println("BUTTON EVENT ..................... EDIT");
 			app.clearCbox();
@@ -48,8 +47,12 @@ public class BtnListener implements ActionListener {
 			app.setTextField("");
 		} else if (command.equals("new") && state == State.idle) {
 			System.out.println(".............................NEWRECORD");
-			new AddRecordFrame(model.getColumnNames(),list);
-			
+			AddRecordFrame arf = new AddRecordFrame(app, model.getColumnNames());
+			String insert = model.getSqlValuesStringFromList(arf.getResponse(), model.getLastSelectedTable(), model.getColumnNames());
+			System.out.println("INSETING TO TABLE .........................................SQL:"+insert);
+			//model.executeUpdate(insert);
+			sb.append(insert);
+			Controller.refreshTables(model, app);
 
 		} else if (command.equals("cBox") && state == State.editing) {
 			JComboBox<Object> cb = (JComboBox<Object>) e.getSource();
