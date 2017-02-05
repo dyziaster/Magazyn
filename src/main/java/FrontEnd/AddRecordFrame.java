@@ -28,26 +28,26 @@ public class AddRecordFrame extends JDialog {
 		this(null, null);
 	}
 
-	public AddRecordFrame(App app, Object[] columnNames) {
+	public AddRecordFrame(App app, List<String> columnNames) {
 		this.app = app;
 		this.setLayout(new GridBagLayout());
 		this.setModal(true);
 		this.setAlwaysOnTop(true);
 		this.setModalityType(ModalityType.APPLICATION_MODAL);
-		this.setUndecorated(true);
-		this.setBounds(GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds());
+		//this.setUndecorated(true);
+		//this.setBounds(GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds());
 		initialize(columnNames);
 	}
 
-	private void initialize(Object[] columnNames) {
+	private void initialize(List<String> columnNames) {
 
 		System.out.println("...............................................INITIALIZE");
 		
 		JPanel panel = new JPanel();
 		if (columnNames != null) {
 			System.out.println("...............................................ADDING BUTTONS");
-			for (int i = 0; i < columnNames.length; i++) {
-				JLabel lbl = new JLabel(columnNames[i].toString());
+			for (int i = 0; i < columnNames.size(); i++) {
+				JLabel lbl = new JLabel(columnNames.get(i).toString());
 				panel.add(lbl);
 				JTextField tf  = new JTextField("",10);
 				panel.add(tf);

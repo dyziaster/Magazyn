@@ -5,6 +5,7 @@ import java.awt.EventQueue;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Dimension;
 
 import javax.swing.JMenuBar;
@@ -51,31 +52,24 @@ public class App extends JFrame {
 	private JTable table;
 	private Controller controller;
 	private JLabel lbl;
-	private DefaultTableModel dtm;
-	private JTextField textField;
-	private TableColumnModel tcm;
 	private JTextField textField_1;
-
 	private JPanel panelMain;
 	private JPanel panelTable;
 	private JPanel panelConsole;
 	private JTextField editTextField;
-	// public void setTextListener(ActionListener a){
-	// textField.addActionListener(a);
-	// }
 
+	private JTextField textField;
 	private String selectedCellString;
 	private JButton editBtn;
 	private JButton newBtn;
 	private JButton cancelBtn;
 	private JButton saveBtn;
-
+	
 	private String currentRecordValue = "";
 	private JComboBox cBox;
 
-	// public void setLabelText(String text){
-	// lbl.setText(text);
-	// }
+	private DefaultTableModel dtm;
+	private TableColumnModel tcm;
 
 	public void setListListener(ListSelectionListener lsm) {
 		list.getSelectionModel().addListSelectionListener(lsm);
@@ -90,7 +84,12 @@ public class App extends JFrame {
 																	// mass of
 																	// them
 
-		DefaultTableModel tableModel = (DefaultTableModel) table.getModel(); /////////// can it go with this.getvalueat ???
+		DefaultTableModel tableModel = (DefaultTableModel) table.getModel(); /////////// can
+																				/////////// it
+																				/////////// go
+																				/////////// with
+																				/////////// this.getvalueat
+																				/////////// ???
 
 		tableModel.setDataVector(data, columns);
 		TableColumnModel model = table.getColumnModel();
@@ -111,11 +110,34 @@ public class App extends JFrame {
 		tableModel.fireTableDataChanged();
 	}
 
-	public void setTableList(Object[] list) {
-		this.list.setListData(list);
+	public void setTableData(DefaultTableModel model) {
 
+		TableColumnModel columnModel = table.getColumnModel();
+		table.setModel(model);
+		
+		int lmax = 2;
+		for (int i = 0; i < columnModel.getColumnCount(); i++) {
+			lmax = model.getColumnName(i).toString().length();
+			int lmaxx = 0;
+			for (int j = 0; j < model.getRowCount(); j++) {
+				Object value = this.getValueAt(j, i);
+				if (value != null)
+					lmaxx = value.toString().length();
+				if (lmaxx > lmax)
+					lmax = lmaxx;
+			}
+			columnModel.getColumn(i).setPreferredWidth(lmax * 8);
+		}
+		
+		((DefaultTableModel)table.getModel()).fireTableDataChanged();
 	}
 
+	public void setTableList(Object[] list) {
+		this.list.setListData(list);
+	}
+	public void setTableList(List<String> list) {
+		this.list.setListData(list.toArray());
+	}
 	/**
 	 * Launch the application.
 	 */
@@ -259,6 +281,48 @@ public class App extends JFrame {
 		cBox.addActionListener(listener);
 	}
 
+	public void buttonToggle(String button) {
+
+		Component[] components = panelConsole.getComponents();
+		for (Component c : components) {
+			if (c instanceof JButton) {
+				JButton jb = (JButton) c;
+				if (button.equals(jb.getActionCommand())) {
+					if (jb.isEnabled())
+						jb.setEnabled(false);
+					else
+						jb.setEnabled(true);
+				}
+			}
+		}
+	}
+
+	public void buttonEnable(String button) {
+
+		Component[] components = panelConsole.getComponents();
+		for (Component c : components) {
+			if (c instanceof JButton) {
+				JButton jb = (JButton) c;
+				if (button.equals(jb.getActionCommand())) {
+					jb.setEnabled(true);
+				}
+			}
+		}
+	}
+
+	public void buttonDisable(String button) {
+
+		Component[] components = panelConsole.getComponents();
+		for (Component c : components) {
+			if (c instanceof JButton) {
+				JButton jb = (JButton) c;
+				if (button.equals(jb.getActionCommand())) {
+					jb.setEnabled(false);
+				}
+			}
+		}
+	}
+
 	public int getSelectedRow() {
 		return table.getSelectedRow();
 	}
@@ -296,7 +360,7 @@ public class App extends JFrame {
 	}
 
 	public String getValueAt(int row, int column) {
-		Object value = dtm.getValueAt(row, column);
+		Object value = table.getModel().getValueAt(row, column);
 		if (value == null)
 			return "";
 		else
@@ -318,8 +382,8 @@ public class App extends JFrame {
 		editTextField.setText(this.getValueAt(row, column));
 		this.selectTextField();
 	}
-	
-	public void selectTextField(){
+
+	public void selectTextField() {
 		editTextField.grabFocus();
 		editTextField.selectAll();
 	}
@@ -336,6 +400,9 @@ public class App extends JFrame {
 	}
 
 	public void writeTextToCell() {
+
+		DefaultTableModel dtm = (DefaultTableModel)table.getModel();
+		
 		String text = editTextField.getText();
 		dtm.setValueAt(text, table.getSelectedRow(), table.getSelectedColumn());
 		editTextField.setText("");

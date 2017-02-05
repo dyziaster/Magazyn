@@ -52,14 +52,16 @@ public class BtnListener implements ActionListener {
 			System.out.println("INSETING TO TABLE .........................................SQL:"+insert);
 			//model.executeUpdate(insert);
 			sb.append(insert);
+			//update here view
+			state = State.editedState;
 			Controller.refreshTables(model, app);
+
 
 		} else if (command.equals("cBox") && state == State.editing) {
 			JComboBox<Object> cb = (JComboBox<Object>) e.getSource();
 			state = State.editing;
 			app.setTextField(cb.getSelectedItem());
 			app.selectTextField();
-			
 		} else if (command.equals("textField") && state == state.editing) { // if string is '' does it need to paste null to database iinstead of ''
 			String record = app.getTextField();
 			String colName = app.getSelectedCellColumnName();
@@ -72,11 +74,45 @@ public class BtnListener implements ActionListener {
 			state = State.editedState;
 			app.writeTextToCell();
 		}
+		
+		updateButtonsState();
 	}
 
 	private void resetStringBuilder() {
 		sb.delete(0, sb.length());
 
+	}
+	
+	private void updateButtonsState(){
+		
+		switch(state){
+		
+		case idle :
+			app.buttonEnable("edit");
+			app.buttonEnable("new");
+			app.buttonDisable("cancel");
+			app.buttonDisable("save");
+			break;
+		case editing:
+			app.buttonDisable("edit");
+			app.buttonDisable("new");
+			app.buttonDisable("cancel");
+			app.buttonDisable("save");
+			break;
+		case editedState:
+			app.buttonEnable("edit");
+			app.buttonEnable("cancel");
+			app.buttonEnable("save");
+			app.buttonDisable("new");
+			break;
+		default: 
+			app.buttonEnable("edit");
+			app.buttonEnable("cancel");
+			app.buttonEnable("save");
+			app.buttonEnable("new");
+			
+		}
+		
 	}
 
 }

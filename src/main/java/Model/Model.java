@@ -9,6 +9,13 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Vector;
+
+import javax.swing.table.DefaultTableModel;
+
+import org.apache.log4j.Logger;
+
+import com.mysql.cj.api.mysqla.result.Resultset;
 
 public class Model {
 
@@ -16,25 +23,24 @@ public class Model {
 	public static final String DATABASE = "cds_michal";
 	private static final String TIMEZONE = "?serverTimezone=UTC";
 	private static final String MULTIPLEQUERY = "allowMultiQueries=true";
-	private static final String DB_URL = "jdbc:mysql://127.0.0.1:3306/" + DATABASE + TIMEZONE+"&" + MULTIPLEQUERY;
-
+	private static final String DB_URL = "jdbc:mysql://127.0.0.1:3306/" + DATABASE + TIMEZONE + "&" + MULTIPLEQUERY;
 	// Database credentials
 	private static final String USER = "michal";
 	private static final String PASS = "dyzio";
-	private static Object[][] currentTableModel;
+	private static DefaultTableModel currentTableModel;
 
 	private List<String> tableNames;
 
 	private Connection conn = null;
 	private String lastSelectedTable;
-	private Object[] columnNames;
+	private List<String> columnNames;
 	private String idString;
 
-	public Object[] getColumnNames() {
+	public List<String> getColumnNames() {
 		return columnNames;
 	}
 
-	public void setColumnNames(Object[] columnNames) {
+	public void setColumnNames(List<String> columnNames) {
 		this.columnNames = columnNames;
 	}
 
@@ -58,9 +64,9 @@ public class Model {
 			System.out.println("sql EXCEPTION ............");
 			ee.printStackTrace();
 		}
-//		finally{
-//			conn.close();
-//		}
+		// finally{
+		// conn.close();
+		// }
 
 		return connected;
 
@@ -96,66 +102,14 @@ public class Model {
 		return rs;
 	}
 
-	public Object[] getTableNames() throws SQLException {
+	public List<String> getTableNamesList(){
 		String querry = "SELECT table_name FROM information_schema.tables where table_schema='" + DATABASE + "'";
-		System.out.println("STATEMENT = " + querry);
 		ResultSet rs = executeQuery(querry);
 		if (rs == null)
 			System.out.println("RS IS NULL ....");
-		tableNames = tableNamesFromMap(resultSetToArrayList(rs));
-		return tableNames.toArray();
+		return this.getTableNamesFromRS(rs);
 	}
 
-	public List<String> getTableNamesList() {
-		return tableNames;
-	}
-
-	public static Object[][] getDataFromListMap(List<HashMap<String, Object>> list) {
-		Object data[][] = new Object[list.size()][];
-		for (int i = 0; i < list.size(); i++) {
-			data[i] = list.get(i).values().toArray();
-		}
-		currentTableModel = data;
-		return data;
-	}
-
-	public static Object[] getColumnNamesFromListMap(List<HashMap<String, Object>> list) {
-		return (list.get(0)).keySet().toArray();
-	}
-
-	public static List<HashMap<String, Object>> resultSetToArrayList(ResultSet rs) {
-		ResultSetMetaData md = null;
-		List<HashMap<String, Object>> list = null;
-		try {
-			md = rs.getMetaData();
-			int columns = md.getColumnCount();
-			list = new ArrayList<>(50);
-			while (rs.next()) {
-				HashMap<String, Object> row = new HashMap<>(columns);
-				for (int i = 1; i <= columns; ++i) {
-					row.put(md.getColumnName(i), rs.getObject(i));
-				}
-				list.add(row);
-			}
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
-		return list;
-	}
-
-	public static List<String> tableNamesFromMap(List<HashMap<String, Object>> list) {
-
-		List<String> tablenames = new ArrayList<>();
-
-		for (HashMap<String, Object> m : list) {
-			String s = m.values().toString();
-			tablenames.add(s.substring(1, s.length() - 1));
-
-		}
-		return tablenames;
-	}
 
 	public void setLastSelectedTable(String tableName) {
 		lastSelectedTable = tableName;
@@ -165,55 +119,110 @@ public class Model {
 		return lastSelectedTable;
 	}
 
-	public int getIdnumber(int selectedRow) {
-		int idPosition = 0;
-		for(Object s : columnNames){
-			System.out.println("SEARCHING ID FROM STRING ................."+s);
-			if((s.toString()).substring(0, 3).equals("id_")){
+	public int getIdnumber(int row) {
+		int column = 0;
+		for (Object s : columnNames) {
+			System.out.println("SEARCHING ID FROM STRING ................." + s);
+			if ((s.toString()).substring(0, 3).equals("id_")) {
 				idString = s.toString();
 				break;
-			}
-			else{
-				idPosition++;
+			} else {
+				column++;
 			}
 		}
-		return Integer.valueOf((currentTableModel[selectedRow][idPosition].toString()));
+		return Integer.valueOf((currentTableModel.getValueAt(row, column).toString()));
 	}
 
 	public String getIdString() {
-		
+
 		return idString;
 	}
-	
-	public String getSqlValuesStringFromList(List<String> list, String tableName){
+
+	public String getSqlValuesStringFromList(List<String> list, String tableName) {
 		StringBuilder sb = new StringBuilder();
-		sb.append("INSERT INTO "+tableName+" VALUES (");
-		for(String s : list){
-			sb.append("'"+s+"',");
+		sb.append("INSERT INTO " + tableName + " VALUES (");
+		for (String s : list) {
+			sb.append("'" + s + "',");
 		}
-		sb.deleteCharAt(sb.length()-1);
+		sb.deleteCharAt(sb.length() - 1);
 		sb.append(");");
 		return sb.toString();
 	}
 
-	public String getSqlValuesStringFromList(List<String> list, String tableName, Object[] columnNames2) {
+	public String getSqlValuesStringFromList(List<String> list, String tableName, List<String> list2) {
 		StringBuilder sb = new StringBuilder();
-		sb.append("INSERT INTO "+tableName+" (");
-		
-		for(Object s : columnNames2){
-			sb.append(""+s.toString()+",");
+		sb.append("INSERT INTO " + tableName + " (");
+
+		for (String s : list2) {
+			sb.append("" + s.toString() + ",");
 		}
-		sb.deleteCharAt(sb.length()-1);
+		sb.deleteCharAt(sb.length() - 1);
 		sb.append(") VALUES (");
-		
-		for(String s : list){
-			sb.append("'"+s+"',");
+
+		for (String s : list) {
+			sb.append("'" + s + "',");
 		}
-		sb.deleteCharAt(sb.length()-1);
+		sb.deleteCharAt(sb.length() - 1);
 		sb.append(");");
 		return sb.toString();
 	}
-	
-	
 
+	public DefaultTableModel getTableModelFromRS(ResultSet rs) {
+
+		ResultSetMetaData metaData;
+		Vector<String> columnNames = null;
+		Vector<Vector<Object>> data = null;
+		try {
+			metaData = rs.getMetaData();
+			// names of columns
+			columnNames = new Vector<String>();
+			int columnCount = metaData.getColumnCount();
+			for (int column = 1; column <= columnCount; column++) {
+				columnNames.add(metaData.getColumnName(column));
+			}
+
+			// data of the table
+			data = new Vector<Vector<Object>>();
+			while (rs.next()) {
+				Vector<Object> vector = new Vector<Object>();
+				for (int columnIndex = 1; columnIndex <= columnCount; columnIndex++) {
+					vector.add(rs.getObject(columnIndex));
+				}
+				data.add(vector);
+
+				System.out.println("VALUECHANGED...................." + data);
+			}
+
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		currentTableModel = new DefaultTableModel(data, columnNames);
+		this.setColumnNames(columnNames);
+		return currentTableModel;
+
+	}
+	
+	public List<String> getTableNamesFromRS(ResultSet rs){
+		
+
+		ResultSetMetaData metaData = null;
+		Vector<String> vector = new Vector<String>();
+		try {
+			metaData = rs.getMetaData();
+			int columnCount = metaData.getColumnCount();
+				while (rs.next()) {
+					for (int columnIndex = 1; columnIndex <= columnCount; columnIndex++) {
+						vector.add((rs.getObject(columnIndex)).toString());
+					}
+				}
+			}
+
+		 catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return vector;
+	
+	}
 }

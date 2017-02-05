@@ -36,8 +36,8 @@ public class Controller {
 		listListener = new ListListener(m, appFrame);
 		textListener = new CustomListener(m, appFrame);
 		tableListener = new TableListener(m, appFrame);
-		btnListener = new BtnListener(m,appFrame);
-		
+		btnListener = new BtnListener(m, appFrame);
+
 		onStart();
 
 	}
@@ -51,20 +51,20 @@ public class Controller {
 	}
 
 	public void onStart() {
+
+		appFrame.buttonDisable("new");
+		appFrame.buttonDisable("cancel");
+		appFrame.buttonDisable("edit");
+		appFrame.buttonDisable("save");
+
 		appFrame.setVisible(true);
 		if (model.connectToDatabase()) {
-			try {
-				appFrame.setTableList(model.getTableNames());
-			} catch (SQLException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			System.out.println("tables:" + model.getTableNamesList());
+			appFrame.setTableList(model.getTableNamesList());
 			appFrame.setTableData(null, null);
 			appFrame.setListListener(getListListener());
 			appFrame.setTableListener(getTableListener());
 			appFrame.setBtnListeners(getBtnListener());
-			
+
 			// appFrame.setTextListener(getTextListener());
 		}
 	}
@@ -89,14 +89,10 @@ public class Controller {
 		this.appFrame = app;
 		System.out.println(app);
 	}
-	
-	public static void refreshTables(Model model, App appFrame){
-		ResultSet rs = model.executeQuery("SELECT * FROM "+model.getLastSelectedTable());
-		List<HashMap<String,Object>> listqyer =Model.resultSetToArrayList(rs); 
-		System.out.println(listqyer);
-		Object[] columnNames = Model.getColumnNamesFromListMap(listqyer);
-		Object[][] data = Model.getDataFromListMap(listqyer);
-		appFrame.setTableData(data, columnNames);
+
+	public static void refreshTables(Model model, App appFrame) {
+		ResultSet rs = model.executeQuery("SELECT * FROM " + model.getLastSelectedTable());
+		appFrame.setTableData(model.getTableModelFromRS(rs));
 	}
 
 }

@@ -34,7 +34,7 @@ public class CustomListener implements ActionListener {
 					break;
 				case "SELECT":
 					ResultSet rs = model.executeQuery(querry);
-					System.out.println(Model.resultSetToArrayList(rs));
+					//System.out.println(Model.resultSetToArrayList(rs));
 					break;
 				default:
 					model.executeQuery(querry);

@@ -37,13 +37,9 @@ public class ListListener implements ListSelectionListener {
 					String tableName = model.getTableNamesList().get(i);
 					model.setLastSelectedTable(tableName);
 					ResultSet rs = model.executeQuery("SELECT * FROM "+tableName);
-					List<HashMap<String,Object>> listqyer =Model.resultSetToArrayList(rs); 
-					System.out.println(listqyer);
-					Object[] columnNames = Model.getColumnNamesFromListMap(listqyer);
-					model.setColumnNames(columnNames);
-					Object[][] data = Model.getDataFromListMap(listqyer);
-					appFrame.setTableData(data, columnNames);
 					
+					appFrame.setTableData(model.getTableModelFromRS(rs));
+					this.setButtons();
 					
 				}
 			}
@@ -51,5 +47,13 @@ public class ListListener implements ListSelectionListener {
 		}
 
 	}
+	
+	private void setButtons(){
+		appFrame.buttonEnable("edit");
+		appFrame.buttonEnable("new");
+		appFrame.buttonDisable("cancel");
+		appFrame.buttonDisable("save");
+	}
+	
 
 }
