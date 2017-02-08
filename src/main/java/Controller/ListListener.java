@@ -11,6 +11,7 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import FrontEnd.App;
+import Model.Logger;
 import Model.Model;
 
 public class ListListener implements ListSelectionListener {
@@ -34,7 +35,9 @@ public class ListListener implements ListSelectionListener {
 			for (int i = minIndex; i <= maxIndex; i++) {
 				if (lsm.isSelectedIndex(i)) {
 				//	appFrame.setLabelText(String.valueOf(i));
+					
 					String tableName = model.getTableNamesList().get(i);
+					//Logger.i("FKS......"+model.getForeignKeysOf(tableName));
 					model.setLastSelectedTable(tableName);
 					ResultSet rs = model.executeQuery("SELECT * FROM "+tableName);
 					

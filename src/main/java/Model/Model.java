@@ -1,6 +1,7 @@
 package Model;
 
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -9,13 +10,13 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Vector;
+
 
 import javax.swing.table.DefaultTableModel;
 
-import org.apache.log4j.Logger;
 
-import com.mysql.cj.api.mysqla.result.Resultset;
 
 public class Model {
 
@@ -25,8 +26,8 @@ public class Model {
 	private static final String MULTIPLEQUERY = "allowMultiQueries=true";
 	private static final String DB_URL = "jdbc:mysql://127.0.0.1:3306/" + DATABASE + TIMEZONE + "&" + MULTIPLEQUERY;
 	// Database credentials
-	private static final String USER = "michal";
-	private static final String PASS = "dyzio";
+	private static final String USER = "DAREK";
+	private static final String PASS = "krowy";
 	private static DefaultTableModel currentTableModel;
 
 	private List<String> tableNames;
@@ -46,6 +47,7 @@ public class Model {
 
 	public boolean connectToDatabase() {
 
+		Logger.i("CONNECTING..............");
 		boolean connected = false;
 
 		try {
@@ -57,37 +59,38 @@ public class Model {
 			connected = true;
 			System.out.println("Connected database successfully...");
 
+			Logger.i("CONNECTED..............");
+
 		} catch (ClassNotFoundException e) {
-			System.out.println("CLASS NOT FOUND EXCEPTION ............");
+			Logger.e(Logger.getMethodName(), e.getMessage());
 			e.printStackTrace();
 		} catch (SQLException ee) {
-			System.out.println("sql EXCEPTION ............");
+			Logger.e(Logger.getMethodName(), ee.getMessage());
 			ee.printStackTrace();
 		}
 		// finally{
 		// conn.close();
 		// }
-
 		return connected;
 
 	}
 
 	public void executeUpdate(String query) {
+		Logger.i(Logger.getMethodName(), query);
 		Statement stmt = null;
 		System.out.println("Creating statement2...");
 		try {
 			stmt = conn.createStatement();
 			stmt.executeUpdate(query);
 		} catch (SQLException e) {
-			System.out.println("MODEL.QUERYDATABASE " + e.getMessage());
-			e.printStackTrace();
+			Logger.e(Logger.getMethodName(), e.getMessage());
 		}
 
 	}
 
 	public ResultSet executeQuery(String query) {
+		Logger.i(Logger.getMethodName(), query);
 		Statement stmt = null;
-		System.out.println("Creating statement...");
 		ResultSet rs = null;
 		try {
 			stmt = conn.createStatement();
@@ -97,19 +100,16 @@ public class Model {
 			// e.printStackTrace();
 			System.out.println("MODEL.QUERYDATABASE " + e.getMessage());
 		}
-		// System.out.println("query ok...");
-
 		return rs;
 	}
 
-	public List<String> getTableNamesList(){
+	public List<String> getTableNamesList() {
 		String querry = "SELECT table_name FROM information_schema.tables where table_schema='" + DATABASE + "'";
 		ResultSet rs = executeQuery(querry);
 		if (rs == null)
 			System.out.println("RS IS NULL ....");
 		return this.getTableNamesFromRS(rs);
 	}
-
 
 	public void setLastSelectedTable(String tableName) {
 		lastSelectedTable = tableName;
@@ -190,7 +190,6 @@ public class Model {
 				}
 				data.add(vector);
 
-				System.out.println("VALUECHANGED...................." + data);
 			}
 
 		} catch (SQLException e) {
@@ -202,27 +201,64 @@ public class Model {
 		return currentTableModel;
 
 	}
-	
-	public List<String> getTableNamesFromRS(ResultSet rs){
-		
+
+	public List<String> getTableNamesFromRS(ResultSet rs) {
 
 		ResultSetMetaData metaData = null;
 		Vector<String> vector = new Vector<String>();
 		try {
 			metaData = rs.getMetaData();
 			int columnCount = metaData.getColumnCount();
-				while (rs.next()) {
-					for (int columnIndex = 1; columnIndex <= columnCount; columnIndex++) {
-						vector.add((rs.getObject(columnIndex)).toString());
-					}
+			while (rs.next()) {
+				for (int columnIndex = 1; columnIndex <= columnCount; columnIndex++) {
+					vector.add((rs.getObject(columnIndex)).toString());
 				}
 			}
+		}
 
-		 catch (SQLException e) {
+		catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return vector;
-	
+
+	}
+
+	public Map<String,String> getForeignKeysOf(String tableName) {
+		ResultSetMetaData rsmetaData;
+		DatabaseMetaData metaData;
+		Vector<String> vector = new Vector<String>();
+		Map<String,String> map  = new HashMap<>();
+		try {
+			metaData = conn.getMetaData();
+			ResultSet foreignKeys = metaData.getImportedKeys(conn.getCatalog(), null, tableName);
+			rsmetaData = foreignKeys.getMetaData();
+			int columnCount = rsmetaData.getColumnCount();
+			while (foreignKeys.next()) {
+				map.put( foreignKeys.getString("FKCOLUMN_NAME"),foreignKeys.getString("PKTABLE_NAME"));
+//				    for (int i = 1; i <= columnCount; i++) {
+//				        if (i > 1) System.out.print(",  ");
+//				        String columnValue = foreignKeys.getString(i);
+//				        System.out.print(columnValue + " " + rsmetaData.getColumnName(i));
+//				    }
+//				    System.out.println("");
+				
+//				}
+			}
+			
+			
+		} catch (SQLException e) {
+			Logger.e(Logger.getMethodName(), e.getMessage());
+		}
+		
+		Logger.i(vector);
+		return map;
+	}
+
+	public List<String> getColumnNamesWithoutID() {
+		List<String> list = this.getColumnNames();
+		if(list.get(0).contains("id_"))  // Removing id table from adding to it
+			list.remove(0);
+		return list;
 	}
 }

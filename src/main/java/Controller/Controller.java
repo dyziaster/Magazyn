@@ -3,15 +3,11 @@ package Controller;
 import java.awt.event.ActionListener;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.List;
-
-import javax.swing.JFrame;
 import javax.swing.event.ListSelectionListener;
 
 import FrontEnd.App;
+import Model.Logger;
 import Model.Model;
-
 public class Controller {
 
 	private App appFrame;
@@ -51,7 +47,9 @@ public class Controller {
 	}
 
 	public void onStart() {
-
+		Logger.setJta((appFrame.getAppender()));
+		Logger.i("CONTROLLER.ONSTART .............................................");
+		
 		appFrame.buttonDisable("new");
 		appFrame.buttonDisable("cancel");
 		appFrame.buttonDisable("edit");
@@ -65,8 +63,11 @@ public class Controller {
 			appFrame.setTableListener(getTableListener());
 			appFrame.setBtnListeners(getBtnListener());
 
+			System.out.println("FKS...........................="+(model.getForeignKeysOf("t_kontrahent")).values().toString());
+			System.out.println("FKS...........................="+(model.getForeignKeysOf("t_kontrahent")).keySet().toString());
 			// appFrame.setTextListener(getTextListener());
 		}
+
 	}
 
 	private ActionListener getBtnListener() {

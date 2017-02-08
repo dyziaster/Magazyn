@@ -10,7 +10,10 @@ import javax.swing.JComboBox;
 
 import FrontEnd.AddRecordFrame;
 import FrontEnd.App;
+import Model.Logger;
 import Model.Model;
+import Model.Utils;
+
 
 public class BtnListener implements ActionListener {
 
@@ -26,33 +29,32 @@ public class BtnListener implements ActionListener {
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
+		Logger.i("CLICK BUTTON.............................");
 		String command = e.getActionCommand();
-		if (command.equals("edit") && state != State.editing) {
+		if (command.equals(Utils.COMMAND_EDIT) && state != State.editing) {
 			System.out.println("BUTTON EVENT ..................... EDIT");
 			app.clearCbox();
 			app.writeCellToText();
 			app.populateCbox(app.getColumnRecords());
 			app.turnOffTableSelection();
 			state = State.editing;
-		} else if (command.equals("save") && state == State.editedState) {
+		} else if (command.equals(Utils.COMMAND_SAVE) && state == State.editedState) {
 			model.executeUpdate(sb.toString()); 
 			Controller.refreshTables(model, app);
 			resetStringBuilder();
 			state = State.idle;
-		} else if (command.equals("cancel") && !(state == State.idle)) {
+		} else if (command.equals(Utils.COMMAND_CANCEL) && !(state == State.idle)) {
 			Controller.refreshTables(model, app);
 			resetStringBuilder();
 			app.turnOnTableSelection();
  			state = State.idle; 
 			app.setTextField("");
-		} else if (command.equals("new") && state == State.idle) {
-			System.out.println(".............................NEWRECORD");
-			AddRecordFrame arf = new AddRecordFrame(app, model.getColumnNames());
-			String insert = model.getSqlValuesStringFromList(arf.getResponse(), model.getLastSelectedTable(), model.getColumnNames());
-			System.out.println("INSETING TO TABLE .........................................SQL:"+insert);
-			//model.executeUpdate(insert);
+		} else if (command.equals(Utils.COMMAND_NEW) && state == State.idle) {
+			AddRecordFrame arf = new AddRecordFrame(model, model.getColumnNamesWithoutID(),model.getForeignKeysOf(model.getLastSelectedTable()));
+			String insert = model.getSqlValuesStringFromList(arf.getResponse(), model.getLastSelectedTable(), model.getColumnNamesWithoutID());
+			Logger.i(Logger.getMethodName(), insert);
+			
 			sb.append(insert);
-			//update here view
 			state = State.editedState;
 			Controller.refreshTables(model, app);
 
@@ -68,13 +70,14 @@ public class BtnListener implements ActionListener {
 			int idNumber = model.getIdnumber(app.getSelectedRow());
 			String idString = model.getIdString();
 			System.out.println("ID OF RECORD IS ....................................."+idNumber);
-			sb.append("UPDATE " + model.getLastSelectedTable() + " SET " + colName + " ='" + record + "' WHERE "+ idString + " = '" + idNumber + "';" + System.lineSeparator());
+			sb.append("UPDATE " + model.getLastSelectedTable() + " SET " + colName + " ='" + record + "' WHERE "+ idString + " = '" + idNumber + "';");
 			System.out.println(sb);
 			app.turnOnTableSelection();
 			state = State.editedState;
 			app.writeTextToCell();
 		}
 		
+		Logger.i("CURRENT SQL STATE : "+sb.toString());
 		updateButtonsState();
 	}
 

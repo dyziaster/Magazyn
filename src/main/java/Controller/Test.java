@@ -27,12 +27,14 @@ public class Test {
 	}
 	// BUG IN UPDATE THERE COLUMN HAS MORE THAN 1 SAME VALUES <-------------------------------------- solved
 	// BUG null pointer <-------------------------------------- solved
+	// Column names must be set in model.
+	// column names of what ?????
+	// make it getColnames(String tablename)
 	
 	public static void createGui() throws ClassNotFoundException, SQLException{
 		Model m = new Model();
 		App app = new App();
 		new Controller(m,app);
-		
 		
 	}
 }

@@ -20,9 +20,11 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
+import javax.swing.text.DefaultCaret;
 
 import Controller.Controller;
 import Controller.ListListener;
+import Model.Utils;
 
 import javax.swing.JList;
 import java.awt.FlowLayout;
@@ -51,14 +53,13 @@ public class App extends JFrame {
 	private JList list;
 	private JTable table;
 	private Controller controller;
-	private JLabel lbl;
-	private JTextField textField_1;
 	private JPanel panelMain;
 	private JPanel panelTable;
-	private JPanel panelConsole;
+	private JPanel panelBottom;
+	private JPanel panelButtons;
 	private JTextField editTextField;
-
-	private JTextField textField;
+    private JTextArea output;
+    
 	private String selectedCellString;
 	private JButton editBtn;
 	private JButton newBtn;
@@ -168,7 +169,8 @@ public class App extends JFrame {
 		setMinimumSize(new Dimension(screenSize.width / sizeConstant, screenSize.height / sizeConstant));
 
 		panelMain = new JPanel();
-		panelConsole = new JPanel();
+		panelBottom = new JPanel();
+		panelButtons = new JPanel();
 		JTextArea jta = new JTextArea();
 		jta.setPreferredSize(new Dimension(0, 200));
 
@@ -217,31 +219,52 @@ public class App extends JFrame {
 		JMenu menuHelp = new JMenu("Help");
 		menuBar.add(menuHelp);
 
-		editBtn = new JButton("Edit");
-		editBtn.setActionCommand("edit");
-		panelConsole.add(editBtn);
+		BoxLayout bl = new BoxLayout(panelButtons, BoxLayout.Y_AXIS);
+		panelButtons.setLayout(bl);
 
 		newBtn = new JButton("New");
-		newBtn.setActionCommand("new");
-		panelConsole.add(newBtn);
+		newBtn.setActionCommand(Utils.COMMAND_NEW);
+		panelButtons.add(newBtn);
+
+		editBtn = new JButton("Edit");
+		editBtn.setActionCommand(Utils.COMMAND_EDIT);
+		panelButtons.add(editBtn);
 
 		cancelBtn = new JButton("Cancel");
-		panelConsole.add(cancelBtn);
-		cancelBtn.setActionCommand("cancel");
+		panelButtons.add(cancelBtn);
+		cancelBtn.setActionCommand(Utils.COMMAND_CANCEL);
 
 		saveBtn = new JButton("Save");
-		saveBtn.setActionCommand("save");
-		panelConsole.add(saveBtn);
+		saveBtn.setActionCommand(Utils.COMMAND_SAVE);
+		panelButtons.add(saveBtn);
 
 		editTextField = new JTextField();
-		panelConsole.add(editTextField);
-		editTextField.setColumns(10);
+		panelButtons.add(editTextField);
+		//editTextField.setColumns(10);
+		editTextField.setMaximumSize( 
+			     new Dimension(Integer.MAX_VALUE, editTextField.getPreferredSize().height) );
 		editTextField.setActionCommand("textField");
+		
 
-		// ADDING SCROLLPANE TO PANEL , EXTENDING NOT WORKING
-		// panelTable.add(scrollTable);
-		// panelTable.add(panelEditNew);
-		// panelTable.add(panelCancelSave);
+		cBox = new JComboBox();
+		cBox.setActionCommand("cBox");
+		cBox.setMaximumSize( 
+			     new Dimension(Integer.MAX_VALUE, cBox.getPreferredSize().height) );
+		panelButtons.add(cBox);
+		
+
+        output = new JTextArea();
+        output.setColumns(10);
+        output.setRows(10);
+//        output.setLineWrap(true);
+        output.setWrapStyleWord(true);
+        DefaultCaret carret = (DefaultCaret)output.getCaret();
+        carret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
+        
+        panelBottom.setLayout(new BorderLayout());
+        JScrollPane scrollJTextArea = new JScrollPane(output);
+        scrollJTextArea.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+        panelBottom.add(scrollJTextArea,BorderLayout.PAGE_END);
 
 		BorderLayout mgr = new BorderLayout();
 		mgr.setVgap(15);
@@ -249,11 +272,9 @@ public class App extends JFrame {
 		panelMain.add(scrollTable, BorderLayout.CENTER);
 		// panelMain.add(panelTable,BorderLayout.CENTER);
 		panelMain.add(scrollList, BorderLayout.WEST);
-		panelMain.add(panelConsole, BorderLayout.PAGE_END);
+		panelMain.add(panelBottom, BorderLayout.PAGE_END);
+		panelMain.add(panelButtons, BorderLayout.EAST);
 
-		cBox = new JComboBox();
-		cBox.setActionCommand("cBox");
-		panelConsole.add(cBox);
 
 		this.setContentPane(panelMain);
 		this.setSize(800, 600);
@@ -283,7 +304,7 @@ public class App extends JFrame {
 
 	public void buttonToggle(String button) {
 
-		Component[] components = panelConsole.getComponents();
+		Component[] components = panelButtons.getComponents();
 		for (Component c : components) {
 			if (c instanceof JButton) {
 				JButton jb = (JButton) c;
@@ -299,7 +320,7 @@ public class App extends JFrame {
 
 	public void buttonEnable(String button) {
 
-		Component[] components = panelConsole.getComponents();
+		Component[] components = panelButtons.getComponents();
 		for (Component c : components) {
 			if (c instanceof JButton) {
 				JButton jb = (JButton) c;
@@ -312,7 +333,7 @@ public class App extends JFrame {
 
 	public void buttonDisable(String button) {
 
-		Component[] components = panelConsole.getComponents();
+		Component[] components = panelButtons.getComponents();
 		for (Component c : components) {
 			if (c instanceof JButton) {
 				JButton jb = (JButton) c;
@@ -430,5 +451,9 @@ public class App extends JFrame {
 		table.setRowSelectionAllowed(true);
 		table.setColumnSelectionAllowed(true);
 		table.setEnabled(true);
+	}
+
+	public JTextArea getAppender() {
+		return output;
 	}
 }
