@@ -21,7 +21,7 @@ import javax.swing.table.DefaultTableModel;
 public class Model {
 
 	private static final String JDBC_DRIVER = "com.mysql.cj.jdbc.Driver";
-	public static final String DATABASE = "cds_michal";
+	private static final String DATABASE = "cds_michal";
 	private static final String TIMEZONE = "?serverTimezone=UTC";
 	private static final String MULTIPLEQUERY = "allowMultiQueries=true";
 	private static final String DB_URL = "jdbc:mysql://127.0.0.1:3306/" + DATABASE + TIMEZONE + "&" + MULTIPLEQUERY;
@@ -47,19 +47,14 @@ public class Model {
 
 	public boolean connectToDatabase() {
 
-		Logger.i("CONNECTING..............");
+		Logger.i(Logger.getMethodName(),"Connecting to a selected database...");
 		boolean connected = false;
 
 		try {
 			Class.forName(JDBC_DRIVER);
-
-			// STEP 3: Open a connection
-			System.out.println("Connecting to a selected database...");
 			conn = DriverManager.getConnection(DB_URL, USER, PASS);
 			connected = true;
-			System.out.println("Connected database successfully...");
-
-			Logger.i("CONNECTED..............");
+			Logger.i(Logger.getMethodName(),"Connected database successfully...");
 
 		} catch (ClassNotFoundException e) {
 			Logger.e(Logger.getMethodName(), e.getMessage());
@@ -75,40 +70,38 @@ public class Model {
 
 	}
 
-	public void executeUpdate(String query) {
-		Logger.i(Logger.getMethodName(), query);
+	public void executeUpdate(String querry) {
+		Logger.i(Logger.getMethodName(), querry);
 		Statement stmt = null;
 		System.out.println("Creating statement2...");
 		try {
 			stmt = conn.createStatement();
-			stmt.executeUpdate(query);
+			stmt.executeUpdate(querry);
 		} catch (SQLException e) {
 			Logger.e(Logger.getMethodName(), e.getMessage());
 		}
 
 	}
 
-	public ResultSet executeQuery(String query) {
-		Logger.i(Logger.getMethodName(), query);
+	public ResultSet executeQuerry(String querry) {
+		Logger.i(Logger.getMethodName(), querry);
 		Statement stmt = null;
 		ResultSet rs = null;
 		try {
 			stmt = conn.createStatement();
-			rs = stmt.executeQuery(query);
+			rs = stmt.executeQuery(querry);
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			// e.printStackTrace();
-			System.out.println("MODEL.QUERYDATABASE " + e.getMessage());
+			Logger.e(Logger.getMethodName(), e.getMessage());
 		}
 		return rs;
 	}
 
 	public List<String> getTableNamesList() {
 		String querry = "SELECT table_name FROM information_schema.tables where table_schema='" + DATABASE + "'";
-		ResultSet rs = executeQuery(querry);
+		ResultSet rs = executeQuerry(querry);
 		if (rs == null)
-			System.out.println("RS IS NULL ....");
-		return this.getTableNamesFromRS(rs);
+			Logger.e(Logger.getMethodName(), "result set returns null from "+querry);
+		return Utils.getTableNamesFromRS(rs);
 	}
 
 	public void setLastSelectedTable(String tableName) {
@@ -119,7 +112,8 @@ public class Model {
 		return lastSelectedTable;
 	}
 
-	public int getIdnumber(int row) {
+	public int getIdnumber(int row) { // used to update record based on its ID
+		// add functionality that handles no ID column.
 		int column = 0;
 		for (Object s : columnNames) {
 			System.out.println("SEARCHING ID FROM STRING ................." + s);
@@ -130,7 +124,8 @@ public class Model {
 				column++;
 			}
 		}
-		return Integer.valueOf((currentTableModel.getValueAt(row, column).toString()));
+		String idValue = currentTableModel.getValueAt(row, column).toString();
+		return Integer.valueOf(idValue);
 	}
 
 	public String getIdString() {
@@ -149,26 +144,10 @@ public class Model {
 		return sb.toString();
 	}
 
-	public String getSqlValuesStringFromList(List<String> list, String tableName, List<String> list2) {
-		StringBuilder sb = new StringBuilder();
-		sb.append("INSERT INTO " + tableName + " (");
 
-		for (String s : list2) {
-			sb.append("" + s.toString() + ",");
-		}
-		sb.deleteCharAt(sb.length() - 1);
-		sb.append(") VALUES (");
-
-		for (String s : list) {
-			sb.append("'" + s + "',");
-		}
-		sb.deleteCharAt(sb.length() - 1);
-		sb.append(");");
-		return sb.toString();
-	}
 
 	public DefaultTableModel getTableModelFromRS(ResultSet rs) {
-
+		Logger.i(Logger.getMethodName(),"creating table model for View");
 		ResultSetMetaData metaData;
 		Vector<String> columnNames = null;
 		Vector<Vector<Object>> data = null;
@@ -193,70 +172,38 @@ public class Model {
 			}
 
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			Logger.e(Logger.getMethodName(), e.getMessage());
 		}
-		currentTableModel = new DefaultTableModel(data, columnNames);
 		this.setColumnNames(columnNames);
+		currentTableModel = new DefaultTableModel(data, columnNames);
 		return currentTableModel;
 
 	}
 
-	public List<String> getTableNamesFromRS(ResultSet rs) {
 
-		ResultSetMetaData metaData = null;
-		Vector<String> vector = new Vector<String>();
-		try {
-			metaData = rs.getMetaData();
-			int columnCount = metaData.getColumnCount();
-			while (rs.next()) {
-				for (int columnIndex = 1; columnIndex <= columnCount; columnIndex++) {
-					vector.add((rs.getObject(columnIndex)).toString());
-				}
-			}
-		}
-
-		catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return vector;
-
-	}
 
 	public Map<String,String> getForeignKeysOf(String tableName) {
-		ResultSetMetaData rsmetaData;
 		DatabaseMetaData metaData;
 		Vector<String> vector = new Vector<String>();
 		Map<String,String> map  = new HashMap<>();
 		try {
 			metaData = conn.getMetaData();
 			ResultSet foreignKeys = metaData.getImportedKeys(conn.getCatalog(), null, tableName);
-			rsmetaData = foreignKeys.getMetaData();
-			int columnCount = rsmetaData.getColumnCount();
 			while (foreignKeys.next()) {
 				map.put( foreignKeys.getString("FKCOLUMN_NAME"),foreignKeys.getString("PKTABLE_NAME"));
-//				    for (int i = 1; i <= columnCount; i++) {
-//				        if (i > 1) System.out.print(",  ");
-//				        String columnValue = foreignKeys.getString(i);
-//				        System.out.print(columnValue + " " + rsmetaData.getColumnName(i));
-//				    }
-//				    System.out.println("");
-				
-//				}
 			}
-			
 			
 		} catch (SQLException e) {
 			Logger.e(Logger.getMethodName(), e.getMessage());
 		}
 		
-		Logger.i(vector);
+		Logger.i(Logger.getMethodName(),vector+"list of foreign keys in table");
 		return map;
 	}
 
 	public List<String> getColumnNamesWithoutID() {
-		List<String> list = this.getColumnNames();
+		List<String> list = new ArrayList<>();
+		list.addAll(this.getColumnNames());
 		if(list.get(0).contains("id_"))  // Removing id table from adding to it
 			list.remove(0);
 		return list;

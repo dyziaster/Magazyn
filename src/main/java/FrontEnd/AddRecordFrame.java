@@ -76,7 +76,7 @@ public class AddRecordFrame extends JDialog {
 
 					String s = foreignKeys.get(column); // get table that key
 														// refers to
-					ResultSet rs = model.executeQuery("select * from " + s + ";"); // select
+					ResultSet rs = model.executeQuerry("select * from " + s + ";"); // select
 																					// all
 																					// from
 																					// table
@@ -124,8 +124,12 @@ public class AddRecordFrame extends JDialog {
 	public List<String> getResponse() {
 		List<String> list = new ArrayList<>();
 
-		for (JTextField s : listTextField)
-			list.add(s.getText());
+		for (JTextField s : listTextField) {
+			String text = s.getText();
+			if(text.equals("") || text == null)
+				return null;
+			list.add(text);
+		}
 		return list;
 	}
 

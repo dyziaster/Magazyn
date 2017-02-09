@@ -30,14 +30,14 @@ public class CustomListener implements ActionListener {
 				System.out.println("Comand ..." + command + "...");
 				switch (command.toUpperCase()) {
 				case "INSERT":
-					model.executeQuery(querry);
+					model.executeQuerry(querry);
 					break;
 				case "SELECT":
-					ResultSet rs = model.executeQuery(querry);
+					ResultSet rs = model.executeQuerry(querry);
 					//System.out.println(Model.resultSetToArrayList(rs));
 					break;
 				default:
-					model.executeQuery(querry);
+					model.executeQuerry(querry);
 				}
 			}
 			tf.setText("");

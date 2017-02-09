@@ -8,6 +8,8 @@ import javax.swing.event.ListSelectionListener;
 import FrontEnd.App;
 import Model.Logger;
 import Model.Model;
+import Model.Utils;
+
 public class Controller {
 
 	private App appFrame;
@@ -35,7 +37,6 @@ public class Controller {
 		btnListener = new BtnListener(m, appFrame);
 
 		onStart();
-
 	}
 
 	public void connect() throws ClassNotFoundException, SQLException {
@@ -43,17 +44,18 @@ public class Controller {
 	}
 
 	public ResultSet queryDatabase(String query) throws SQLException {
-		return model.executeQuery(query);
+		return model.executeQuerry(query);
 	}
 
 	public void onStart() {
 		Logger.setJta((appFrame.getAppender()));
 		Logger.i("CONTROLLER.ONSTART .............................................");
-		
-		appFrame.buttonDisable("new");
-		appFrame.buttonDisable("cancel");
-		appFrame.buttonDisable("edit");
-		appFrame.buttonDisable("save");
+
+		appFrame.buttonDisable(Utils.COMMAND_NEW);
+		appFrame.buttonDisable(Utils.COMMAND_CANCEL);
+		appFrame.buttonDisable(Utils.COMMAND_SAVE);
+		appFrame.buttonDisable(Utils.COMMAND_EDIT);
+		appFrame.buttonDisable(Utils.COMMAND_TEXT);
 
 		appFrame.setVisible(true);
 		if (model.connectToDatabase()) {
@@ -62,10 +64,6 @@ public class Controller {
 			appFrame.setListListener(getListListener());
 			appFrame.setTableListener(getTableListener());
 			appFrame.setBtnListeners(getBtnListener());
-
-			System.out.println("FKS...........................="+(model.getForeignKeysOf("t_kontrahent")).values().toString());
-			System.out.println("FKS...........................="+(model.getForeignKeysOf("t_kontrahent")).keySet().toString());
-			// appFrame.setTextListener(getTextListener());
 		}
 
 	}
@@ -92,7 +90,7 @@ public class Controller {
 	}
 
 	public static void refreshTables(Model model, App appFrame) {
-		ResultSet rs = model.executeQuery("SELECT * FROM " + model.getLastSelectedTable());
+		ResultSet rs = model.executeQuerry("SELECT * FROM " + model.getLastSelectedTable());
 		appFrame.setTableData(model.getTableModelFromRS(rs));
 	}
 

@@ -13,6 +13,7 @@ import javax.swing.event.ListSelectionListener;
 import FrontEnd.App;
 import Model.Logger;
 import Model.Model;
+import Model.Utils;
 
 public class ListListener implements ListSelectionListener {
 
@@ -39,7 +40,7 @@ public class ListListener implements ListSelectionListener {
 					String tableName = model.getTableNamesList().get(i);
 					//Logger.i("FKS......"+model.getForeignKeysOf(tableName));
 					model.setLastSelectedTable(tableName);
-					ResultSet rs = model.executeQuery("SELECT * FROM "+tableName);
+					ResultSet rs = model.executeQuerry("SELECT * FROM "+tableName);
 					
 					appFrame.setTableData(model.getTableModelFromRS(rs));
 					this.setButtons();
@@ -52,10 +53,10 @@ public class ListListener implements ListSelectionListener {
 	}
 	
 	private void setButtons(){
-		appFrame.buttonEnable("edit");
-		appFrame.buttonEnable("new");
-		appFrame.buttonDisable("cancel");
-		appFrame.buttonDisable("save");
+		appFrame.buttonEnable(Utils.COMMAND_EDIT);
+		appFrame.buttonEnable(Utils.COMMAND_NEW);
+		appFrame.buttonDisable(Utils.COMMAND_CANCEL);
+		appFrame.buttonDisable(Utils.COMMAND_SAVE);
 	}
 	
 

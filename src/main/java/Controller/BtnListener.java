@@ -14,7 +14,6 @@ import Model.Logger;
 import Model.Model;
 import Model.Utils;
 
-
 public class BtnListener implements ActionListener {
 
 	private Model model;
@@ -33,13 +32,18 @@ public class BtnListener implements ActionListener {
 		String command = e.getActionCommand();
 		if (command.equals(Utils.COMMAND_EDIT) && state != State.editing) {
 			System.out.println("BUTTON EVENT ..................... EDIT");
-			app.clearCbox();
-			app.writeCellToText();
-			app.populateCbox(app.getColumnRecords());
-			app.turnOffTableSelection();
-			state = State.editing;
+			try{
+				app.clearCbox();
+				app.writeCellToText();
+				app.populateCbox(app.getColumnRecords());
+				app.turnOffTableSelection();
+				state = State.editing;
+			}
+			catch(Exception ee){
+				Logger.e(ee.getMessage());
+			}
 		} else if (command.equals(Utils.COMMAND_SAVE) && state == State.editedState) {
-			model.executeUpdate(sb.toString()); 
+			model.executeUpdate(sb.toString());
 			Controller.refreshTables(model, app);
 			resetStringBuilder();
 			state = State.idle;
@@ -47,37 +51,41 @@ public class BtnListener implements ActionListener {
 			Controller.refreshTables(model, app);
 			resetStringBuilder();
 			app.turnOnTableSelection();
- 			state = State.idle; 
+			state = State.idle;
 			app.setTextField("");
+			app.clearCbox();
 		} else if (command.equals(Utils.COMMAND_NEW) && state == State.idle) {
-			AddRecordFrame arf = new AddRecordFrame(model, model.getColumnNamesWithoutID(),model.getForeignKeysOf(model.getLastSelectedTable()));
-			String insert = model.getSqlValuesStringFromList(arf.getResponse(), model.getLastSelectedTable(), model.getColumnNamesWithoutID());
-			Logger.i(Logger.getMethodName(), insert);
+			AddRecordFrame arf = new AddRecordFrame(model, model.getColumnNamesWithoutID(),	model.getForeignKeysOf(model.getLastSelectedTable()));
+			List<String> response = arf.getResponse();
+			if (response != null) {
+				String insert = Utils.getSqlValuesStringFromList(response, model.getLastSelectedTable(),model.getColumnNamesWithoutID());
+				Logger.i(Logger.getMethodName(), insert);
+				sb.append(insert);
+				state = State.editedState;
+				Controller.refreshTables(model, app);
+			}
+			Controller.refreshTables(model, app); // 	WITHOUT THIS ITS A BUG - update - corrected bug 
 			
-			sb.append(insert);
-			state = State.editedState;
-			Controller.refreshTables(model, app);
-
-
 		} else if (command.equals("cBox") && state == State.editing) {
 			JComboBox<Object> cb = (JComboBox<Object>) e.getSource();
 			state = State.editing;
 			app.setTextField(cb.getSelectedItem());
 			app.selectTextField();
-		} else if (command.equals("textField") && state == state.editing) { // if string is '' does it need to paste null to database iinstead of ''
+		} else if (command.equals("textField") && state == state.editing) { // what if string is null
 			String record = app.getTextField();
 			String colName = app.getSelectedCellColumnName();
 			int idNumber = model.getIdnumber(app.getSelectedRow());
 			String idString = model.getIdString();
-			System.out.println("ID OF RECORD IS ....................................."+idNumber);
+			System.out.println("ID OF RECORD IS ....................................." + idNumber);
 			sb.append("UPDATE " + model.getLastSelectedTable() + " SET " + colName + " ='" + record + "' WHERE "+ idString + " = '" + idNumber + "';");
 			System.out.println(sb);
 			app.turnOnTableSelection();
 			state = State.editedState;
 			app.writeTextToCell();
+			app.clearCbox();
 		}
-		
-		Logger.i("CURRENT SQL STATE : "+sb.toString());
+
+		Logger.i("CURRENT SQL STATE : " + sb.toString());
 		updateButtonsState();
 	}
 
@@ -85,37 +93,40 @@ public class BtnListener implements ActionListener {
 		sb.delete(0, sb.length());
 
 	}
-	
-	private void updateButtonsState(){
-		
-		switch(state){
-		
-		case idle :
-			app.buttonEnable("edit");
-			app.buttonEnable("new");
-			app.buttonDisable("cancel");
-			app.buttonDisable("save");
+
+	private void updateButtonsState() {
+
+		switch (state) {
+
+		case idle:
+			app.buttonEnable(Utils.COMMAND_NEW);
+			app.buttonEnable(Utils.COMMAND_EDIT);
+			app.buttonDisable(Utils.COMMAND_CANCEL);
+			app.buttonDisable(Utils.COMMAND_SAVE);
+			app.buttonDisable(Utils.COMMAND_TEXT);
 			break;
 		case editing:
-			app.buttonDisable("edit");
-			app.buttonDisable("new");
-			app.buttonDisable("cancel");
-			app.buttonDisable("save");
+			app.buttonDisable(Utils.COMMAND_EDIT);
+			app.buttonDisable(Utils.COMMAND_NEW);
+			app.buttonDisable(Utils.COMMAND_CANCEL);
+			app.buttonDisable(Utils.COMMAND_SAVE);
+			app.buttonEnable(Utils.COMMAND_TEXT);
 			break;
 		case editedState:
-			app.buttonEnable("edit");
-			app.buttonEnable("cancel");
-			app.buttonEnable("save");
-			app.buttonDisable("new");
+			app.buttonEnable(Utils.COMMAND_EDIT);
+			app.buttonEnable(Utils.COMMAND_CANCEL);
+			app.buttonEnable(Utils.COMMAND_SAVE);
+			app.buttonDisable(Utils.COMMAND_NEW);
+			app.buttonDisable(Utils.COMMAND_TEXT);
 			break;
-		default: 
-			app.buttonEnable("edit");
-			app.buttonEnable("cancel");
-			app.buttonEnable("save");
-			app.buttonEnable("new");
-			
+		default:
+			app.buttonEnable(Utils.COMMAND_EDIT);
+			app.buttonEnable(Utils.COMMAND_CANCEL);
+			app.buttonEnable(Utils.COMMAND_SAVE);
+			app.buttonEnable(Utils.COMMAND_NEW);
+
 		}
-		
+
 	}
 
 }

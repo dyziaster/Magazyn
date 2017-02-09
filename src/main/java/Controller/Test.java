@@ -30,6 +30,8 @@ public class Test {
 	// Column names must be set in model.
 	// column names of what ?????
 	// make it getColnames(String tablename)
+	// columnNames bug in model - it was removing id column from orginal LIst of columns daaaaa?...
+	// solved
 	
 	public static void createGui() throws ClassNotFoundException, SQLException{
 		Model m = new Model();

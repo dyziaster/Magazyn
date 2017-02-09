@@ -33,9 +33,11 @@ import java.awt.GridLayout;
 import java.awt.Toolkit;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.TreeSet;
 
 import javax.swing.JMenuItem;
 import javax.swing.JMenu;
@@ -222,23 +224,28 @@ public class App extends JFrame {
 		BoxLayout bl = new BoxLayout(panelButtons, BoxLayout.Y_AXIS);
 		panelButtons.setLayout(bl);
 
-		newBtn = new JButton("New");
+		newBtn = new JButton(Utils.COMMAND_NEW);
+		newBtn.setName(Utils.COMMAND_NEW);
 		newBtn.setActionCommand(Utils.COMMAND_NEW);
 		panelButtons.add(newBtn);
 
-		editBtn = new JButton("Edit");
+		editBtn = new JButton(Utils.COMMAND_EDIT);
 		editBtn.setActionCommand(Utils.COMMAND_EDIT);
+		editBtn.setName(Utils.COMMAND_EDIT);
 		panelButtons.add(editBtn);
 
-		cancelBtn = new JButton("Cancel");
-		panelButtons.add(cancelBtn);
+		cancelBtn = new JButton(Utils.COMMAND_CANCEL);
 		cancelBtn.setActionCommand(Utils.COMMAND_CANCEL);
-
-		saveBtn = new JButton("Save");
+		cancelBtn.setName(Utils.COMMAND_CANCEL);
+		panelButtons.add(cancelBtn);
+		
+		saveBtn = new JButton(Utils.COMMAND_SAVE);
 		saveBtn.setActionCommand(Utils.COMMAND_SAVE);
+		saveBtn.setName(Utils.COMMAND_SAVE);
 		panelButtons.add(saveBtn);
 
 		editTextField = new JTextField();
+		editTextField.setName(Utils.COMMAND_TEXT);
 		panelButtons.add(editTextField);
 		//editTextField.setColumns(10);
 		editTextField.setMaximumSize( 
@@ -282,7 +289,8 @@ public class App extends JFrame {
 	}
 
 	public Set<Object> getColumnRecords() {
-		Set<Object> list = new HashSet<>();
+		Set<Object> list = new TreeSet<>();
+		
 		int column = table.getSelectedColumn();
 
 		for (int i = 0; i < table.getRowCount(); i++) {
@@ -322,12 +330,9 @@ public class App extends JFrame {
 
 		Component[] components = panelButtons.getComponents();
 		for (Component c : components) {
-			if (c instanceof JButton) {
-				JButton jb = (JButton) c;
-				if (button.equals(jb.getActionCommand())) {
-					jb.setEnabled(true);
+				if (button.equals(c.getName())) {
+					c.setEnabled(true);
 				}
-			}
 		}
 	}
 
@@ -335,12 +340,9 @@ public class App extends JFrame {
 
 		Component[] components = panelButtons.getComponents();
 		for (Component c : components) {
-			if (c instanceof JButton) {
-				JButton jb = (JButton) c;
-				if (button.equals(jb.getActionCommand())) {
-					jb.setEnabled(false);
+				if (button.equals(c.getName())) {
+					c.setEnabled(false);
 				}
-			}
 		}
 	}
 
@@ -388,14 +390,14 @@ public class App extends JFrame {
 			return value.toString();
 	}
 
-	public void writeCellToText() {
+	public void writeCellToText() throws Exception {
 
 		int row = table.getSelectedRow();
 		int column = table.getSelectedColumn();
 
 		if (row < 0 || column < 0) {
 			System.out.println("ROWS COLS SELECTED........" + row + " " + column + "...<0.....EXITING");
-			return;
+			throw new Exception("No record is selected");
 		}
 
 		int id_ = getIdNumber(row);
@@ -455,5 +457,21 @@ public class App extends JFrame {
 
 	public JTextArea getAppender() {
 		return output;
+	}
+}
+
+class Comparator1 implements Comparator<Object>{
+	
+	@Override
+	public int compare(Object o1, Object o2) {
+		Double i1 = Double.valueOf(o1.toString());
+		Double i2 = Double.valueOf(o2.toString());
+		
+		if(i1>i2)
+			return 1;
+		else if(i1<i2)
+			return -1;
+		else				
+			return 0;
 	}
 }

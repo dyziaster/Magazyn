@@ -1,4 +1,4 @@
-//package FrontEnd;
+package FrontEnd;
 //
 //import java.awt.BorderLayout;
 //import java.awt.Container;
@@ -26,7 +26,7 @@
 //
 //import Entitys.Account;
 //
-//public class CustomLayout {
+public class CustomLayout {
 //	
 //	  public static void main(String args[]) throws SQLException {
 //		    Object rowData[][] = { { "Row1-Column1", "Row1-Column2", "Row1-Column3" },
@@ -107,4 +107,4 @@
 //		    f.setVisible(true);
 //		  }
 //
-//}
+}
