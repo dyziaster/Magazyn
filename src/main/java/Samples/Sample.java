@@ -1,7 +1,38 @@
+<<<<<<< HEAD
 package Samples;
 
 
 public class Sample {
+=======
+////package Samples;
+//
+//import java.io.File;
+//import java.sql.Connection;
+//import java.sql.DriverManager;
+//
+//import org.hibernate.Session;
+//import org.hibernate.SessionFactory;
+//import org.hibernate.boot.MetadataSources;
+//import org.hibernate.boot.internal.SessionFactoryBuilderImpl;
+//import org.hibernate.boot.registry.StandardServiceRegistry;
+//import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
+//
+//import com.j256.ormlite.dao.BaseDaoImpl;
+//import com.j256.ormlite.dao.Dao;
+//import com.j256.ormlite.dao.DaoManager;
+//import com.j256.ormlite.jdbc.JdbcConnectionSource;
+//import com.j256.ormlite.logger.Logger;
+//import com.j256.ormlite.logger.LoggerFactory;
+//import com.j256.ormlite.support.ConnectionSource;
+//import com.j256.ormlite.table.TableUtils;
+//
+//import Entitys.Account;
+//import Entitys.Magazyny;
+//import Entitys.Narzedzie;
+//import Entitys.Obszar;
+//
+//public class Sample {
+>>>>>>> 0ef8970f392ae9f8abfa16ea20a8f2d181c9f9a6
 //	public static void main(String[] args) throws Exception {
 //		
 //		Sample sample = new Sample();
