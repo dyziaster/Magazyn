@@ -10,6 +10,7 @@ import javax.swing.JComboBox;
 
 import FrontEnd.AddRecordFrame;
 import FrontEnd.App;
+import FrontEnd.QuerryFrame;
 import Model.Logger;
 import Model.Model;
 import Model.Utils;
@@ -55,16 +56,20 @@ public class BtnListener implements ActionListener {
 			app.setTextField("");
 			app.clearCbox();
 		} else if (command.equals(Utils.COMMAND_NEW) && state == State.idle) {
-			AddRecordFrame arf = new AddRecordFrame(model, model.getColumnNamesWithoutID(),	model.getForeignKeysOf(model.getLastSelectedTable()));
-			List<String> response = arf.getResponse();
-			if (response != null) {
-				String insert = Utils.getSqlValuesStringFromList(response, model.getLastSelectedTable(),model.getColumnNamesWithoutID());
-				Logger.i(Logger.getMethodName(), insert);
-				sb.append(insert);
-				state = State.editedState;
-				Controller.refreshTables(model, app);
-			}
-			Controller.refreshTables(model, app); // 	WITHOUT THIS ITS A BUG - update - corrected bug 
+//			AddRecordFrame arf = new AddRecordFrame(model, model.getColumnNamesWithoutID(),	model.getForeignKeysOf(model.getLastSelectedTable()));
+//			List<String> response = arf.getResponse();
+//			if (response != null) {
+//				String insert = Utils.getSqlValuesStringFromList(response, model.getLastSelectedTable(),model.getColumnNamesWithoutID());
+//				Logger.i(Logger.getMethodName(), insert);
+//				sb.append(insert);
+//				state = State.editedState;
+//				Controller.refreshTables(model, app);
+//			}
+//			Controller.refreshTables(model, app); // 	WITHOUT THIS ITS A BUG - update - corrected bug 
+			
+			ResultSet rs= model.executeQuerry("select * from cds_michal.t_btn_sql") ;
+			
+			new QuerryFrame(model,Utils.getNthColumnRecordsFrom(rs, 3),Utils.getNthColumnRecordsFrom(rs, 5),Utils.getNthColumnRecordsFrom(rs, 4));
 			
 		} else if (command.equals("cBox") && state == State.editing) {
 			JComboBox<Object> cb = (JComboBox<Object>) e.getSource();

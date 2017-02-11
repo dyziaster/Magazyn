@@ -32,6 +32,7 @@ public class Test {
 	// make it getColnames(String tablename)
 	// columnNames bug in model - it was removing id column from orginal LIst of columns daaaaa?...
 	// solved
+	// columnNames and table model debug it ...(gettablemodelfromrs)
 	
 	public static void createGui() throws ClassNotFoundException, SQLException{
 		Model m = new Model();

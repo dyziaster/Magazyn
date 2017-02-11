@@ -9,7 +9,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 
+import javax.swing.JTable;
 import javax.swing.JTextArea;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableColumnModel;
 
 public class Utils {
 	
@@ -68,6 +71,8 @@ public class Utils {
 				list.add(resultSet.getString(column));
 
 			}
+			
+			resultSet.beforeFirst();
 
 		} catch (SQLException e) {
 			Logger.e(Logger.getMethodName(), e.getMessage());
@@ -134,6 +139,60 @@ public class Utils {
 		sb.deleteCharAt(sb.length() - 1);
 		sb.append(");");
 		return sb.toString();
+	}
+	
+	public static DefaultTableModel getTableModelFromRS(ResultSet rs) {
+		Logger.i(Logger.getMethodName(),"creating table model for View");
+		ResultSetMetaData metaData;
+		Vector<String> columnNames = null;
+		Vector<Vector<Object>> data = null;
+		try {
+			metaData = rs.getMetaData();
+			// names of columns
+			columnNames = new Vector<String>();
+			int columnCount = metaData.getColumnCount();
+			for (int column = 1; column <= columnCount; column++) {
+				columnNames.add(metaData.getColumnName(column));
+			}
+
+			// data of the table
+			data = new Vector<Vector<Object>>();
+			while (rs.next()) {
+				Vector<Object> vector = new Vector<Object>();
+				for (int columnIndex = 1; columnIndex <= columnCount; columnIndex++) {
+					vector.add(rs.getObject(columnIndex));
+				}
+				data.add(vector);
+
+			}
+
+		} catch (SQLException e) {
+			Logger.e(Logger.getMethodName(), e.getMessage());
+		}
+		System.out.println(columnNames);
+		return new DefaultTableModel(data, columnNames);
+
+	}
+	
+	public static void adjustColumnsOf(JTable table){
+
+		TableColumnModel columnModel = table.getColumnModel();
+		
+		int lmax = 2;
+		for (int i = 0; i < columnModel.getColumnCount(); i++) {
+			lmax = table.getColumnName(i).toString().length();
+			int lmaxx = 0;
+			for (int j = 0; j < table.getRowCount(); j++) {
+				Object value = table.getValueAt(j, i);
+				if (value != null)
+					lmaxx = value.toString().length();
+				if (lmaxx > lmax)
+					lmax = lmaxx;
+			}
+			columnModel.getColumn(i).setPreferredWidth(lmax * 8);
+		}
+		
+		((DefaultTableModel)table.getModel()).fireTableDataChanged();
 	}
 
 }
