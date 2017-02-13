@@ -208,4 +208,12 @@ public class Model {
 			list.remove(0);
 		return list;
 	}
+
+	public List<String> getMenuItems() {
+		
+		ResultSet rs = this.executeQuerry("select form_name from cds_michal.t_form_cfg;");
+		List<String> list = Utils.getNthColumnRecordsFrom(rs, 1);
+		
+		return list;
+	}
 }

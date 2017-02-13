@@ -51,7 +51,7 @@ public class Utils {
 					if (i > 1)
 						System.out.print(",  ");
 					String columnValue = resultSet.getString(i);
-					System.out.print(columnValue + " " + rsmd.getColumnName(i));
+					System.out.print(rsmd.getColumnName(i) + " " + columnValue);
 				}
 				System.out.println("");
 			}

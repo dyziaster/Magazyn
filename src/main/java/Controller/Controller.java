@@ -18,6 +18,7 @@ public class Controller {
 	private TableListener tableListener;
 	private CustomListener textListener;
 	private BtnListener btnListener;
+	private MenuListener menuListener;
 
 	public Controller() {
 		this(null);
@@ -35,6 +36,8 @@ public class Controller {
 		textListener = new CustomListener(m, appFrame);
 		tableListener = new TableListener(m, appFrame);
 		btnListener = new BtnListener(m, appFrame);
+		menuListener = new MenuListener(m, appFrame);
+
 
 		onStart();
 	}
@@ -64,6 +67,7 @@ public class Controller {
 			appFrame.setListListener(getListListener());
 			appFrame.setTableListener(getTableListener());
 			appFrame.setBtnListeners(getBtnListener());
+			appFrame.setMenuItems(model.getMenuItems(),menuListener);
 		}
 
 	}

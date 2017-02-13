@@ -24,6 +24,7 @@ import javax.swing.text.DefaultCaret;
 
 import Controller.Controller;
 import Controller.ListListener;
+import Controller.MenuListener;
 import Model.Utils;
 
 import javax.swing.JList;
@@ -70,6 +71,7 @@ public class App extends JFrame {
 	
 	private String currentRecordValue = "";
 	private JComboBox cBox;
+	private JMenu menuFile;
 
 	private DefaultTableModel dtm;
 	private TableColumnModel tcm;
@@ -203,17 +205,8 @@ public class App extends JFrame {
 		JMenuBar menuBar = new JMenuBar();
 		this.setJMenuBar(menuBar);
 
-		JMenu menuFile = new JMenu("File");
+		menuFile = new JMenu("File");
 		menuBar.add(menuFile);
-
-		JMenuItem mntmNewMenuItem = new JMenuItem("New menu item");
-		menuFile.add(mntmNewMenuItem);
-
-		JMenuItem mntmNewMenuItem_1 = new JMenuItem("New menu item");
-		menuFile.add(mntmNewMenuItem_1);
-
-		JMenuItem mntmNewMenuItem_2 = new JMenuItem("New menu item");
-		menuFile.add(mntmNewMenuItem_2);
 
 		JMenu menuEdit = new JMenu("Edit");
 		menuBar.add(menuEdit);
@@ -457,6 +450,18 @@ public class App extends JFrame {
 
 	public JTextArea getAppender() {
 		return output;
+	}
+
+	public void setMenuItems(List<String> menuItems, ActionListener listener) {
+		
+		for(String s : menuItems){
+			JMenuItem item = new JMenuItem(s);
+			item.setActionCommand(s);
+			item.addActionListener(listener);
+			menuFile.add(item);
+		}
+		
+		
 	}
 }
 

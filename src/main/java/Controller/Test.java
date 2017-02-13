@@ -33,6 +33,7 @@ public class Test {
 	// columnNames bug in model - it was removing id column from orginal LIst of columns daaaaa?...
 	// solved
 	// columnNames and table model debug it ...(gettablemodelfromrs)
+	// tworzyc wg nazwy kolumny nie numeru kolumny
 	
 	public static void createGui() throws ClassNotFoundException, SQLException{
 		Model m = new Model();

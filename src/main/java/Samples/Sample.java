@@ -1,9 +1,7 @@
-<<<<<<< HEAD
 package Samples;
 
 
 public class Sample {
-=======
 ////package Samples;
 //
 //import java.io.File;
@@ -32,7 +30,6 @@ public class Sample {
 //import Entitys.Obszar;
 //
 //public class Sample {
->>>>>>> 0ef8970f392ae9f8abfa16ea20a8f2d181c9f9a6
 //	public static void main(String[] args) throws Exception {
 //		
 //		Sample sample = new Sample();
