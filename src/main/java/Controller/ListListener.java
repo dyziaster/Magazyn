@@ -28,22 +28,26 @@ public class ListListener implements ListSelectionListener {
 	public void valueChanged(ListSelectionEvent e) {
 		ListSelectionModel lsm = (ListSelectionModel) e.getSource();
 		if (lsm.isSelectionEmpty() || e.getValueIsAdjusting()) {
-			System.out.println("Selecting list ...");
+			;
 		} else {
 			// Find out which indexes are selected.
 			int minIndex = lsm.getMinSelectionIndex();
 			int maxIndex = lsm.getMaxSelectionIndex();
 			for (int i = minIndex; i <= maxIndex; i++) {
 				if (lsm.isSelectedIndex(i)) {
-				//	appFrame.setLabelText(String.valueOf(i));
 					
 					String tableName = model.getTableNamesList().get(i);
-					//Logger.i("FKS......"+model.getForeignKeysOf(tableName));
+					Logger.i(Logger.getMethodName(),"selected"+tableName);
 					model.setLastSelectedTable(tableName);
-					ResultSet rs = model.executeQuerry("SELECT * FROM "+tableName);
 					
-					appFrame.setTableData(model.getTableModelFromRS(rs));
-					this.setButtons();
+					//ResultSet rs = model.executeQuerry("SELECT * FROM "+tableName);
+//					appFrame.setTableData(model.getTableModelFromRS(rs));
+					//appFrame.setTableData(Utils.getTableModelFromRS(rs, model));
+					// ^ does same thing as v . no redundant code
+					
+					Controller.refreshTables(model, appFrame);
+					
+					//this.setButtons();
 					
 				}
 			}

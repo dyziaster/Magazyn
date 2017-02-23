@@ -58,24 +58,13 @@ public class AddRecordFrame extends JDialog {
 				JLabel lbl = new JLabel(columnNames.get(i).toString());
 				panel.add(lbl);
 				String column = columnNames.get(i);
-				if (foreignKeys.keySet().contains(column)) { // checking if
-																// column is
-																// foreignKey.
-																// if yes add
-																// combobox with
-																// records from
-																// primary
-																// column
-																// (second
-																// column)
+				if (foreignKeys.keySet().contains(column)) { // checking if	 column is	 foreignKey. if yes add combobox with records from	 primary column	 (secondcolumn)
 					JTextField tf = new JTextField("", 10); // foreign key = map
-															// (FKcolumn, PK
-															// table)
+															// (FKcolumn, PK table)
 					panel.add(tf);
 					listTextField.add(tf);
 
-					String s = foreignKeys.get(column); // get table that key
-														// refers to
+					String s = foreignKeys.get(column); // get table that key refers to
 					ResultSet rs = model.executeQuerry("select * from " + s + ";"); // select
 																					// all
 																					// from
@@ -126,7 +115,7 @@ public class AddRecordFrame extends JDialog {
 
 		for (JTextField s : listTextField) {
 			String text = s.getText();
-			if(text.equals("") || text == null)
+			if (text.equals("") || text == null)
 				return null;
 			list.add(text);
 		}

@@ -5,22 +5,31 @@ import java.awt.Shape;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.file.Paths;
 import java.sql.ResultSet;
 import java.util.HashMap;
 import java.util.List;
 
 import javax.swing.JComboBox;
 import javax.swing.JTable;
+import javax.swing.table.TableModel;
 
+import org.apache.poi.hssf.model.WorkbookRecordList;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.formula.atp.WorkdayCalculator;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.util.WorkbookUtil;
 
 import FrontEnd.AddRecordFrame;
 import FrontEnd.App;
+import FrontEnd.Document;
 import FrontEnd.QuerryFrame;
-import Model.JTable2Pdf;
 import Model.Logger;
 import Model.Model;
 import Model.Utils;
-
 
 public class BtnListener implements ActionListener {
 
@@ -28,6 +37,7 @@ public class BtnListener implements ActionListener {
 	private App app;
 	private StringBuilder sb = new StringBuilder("");
 	private State state = State.idle;
+	private Object source;
 
 	public BtnListener(Model m, App appFrame) {
 		model = m;
@@ -36,69 +46,165 @@ public class BtnListener implements ActionListener {
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		Logger.i("CLICK BUTTON.............................");
 		String command = e.getActionCommand();
-		if (command.equals(Utils.COMMAND_EDIT) && state != State.editing) {
-			System.out.println("BUTTON EVENT ..................... EDIT");
-			try{
-				app.clearCbox();
-				app.writeCellToText();
-				app.populateCbox(app.getColumnRecords());
-				app.turnOffTableSelection();
-				state = State.editing;
-			}
-			catch(Exception ee){
-				Logger.e(ee.getMessage());
-			}
-		} else if (command.equals(Utils.COMMAND_SAVE) && state == State.editedState) {
-			model.executeUpdate(sb.toString());
-			Controller.refreshTables(model, app);
-			resetStringBuilder();
-			state = State.idle;
-		} else if (command.equals(Utils.COMMAND_CANCEL) && !(state == State.idle)) {
-			Controller.refreshTables(model, app);
-			resetStringBuilder();
-			app.turnOnTableSelection();
-			state = State.idle;
-			app.setTextField("");
-			app.clearCbox();
-		} else if (command.equals(Utils.COMMAND_NEW) && state == State.idle) {
-			AddRecordFrame arf = new AddRecordFrame(model, model.getColumnNamesWithoutID(),	model.getForeignKeysOf(model.getLastSelectedTable()));
-			List<String> response = arf.getResponse();
-			if (response != null) {
-				String insert = Utils.getSqlValuesStringFromList(response, model.getLastSelectedTable(),model.getColumnNamesWithoutID());
-				Logger.i(Logger.getMethodName(), insert);
-				sb.append(insert);
-				state = State.editedState;
-				Controller.refreshTables(model, app);
-			}
-			Controller.refreshTables(model, app); // 	WITHOUT THIS ITS A BUG - update - corrected bug 
-			
-//			ResultSet rs= model.executeQuerry("select * from cds_michal.t_btn_sql") ;
-//			new QuerryFrame(model,Utils.getNthColumnRecordsFrom(rs, 3),Utils.getNthColumnRecordsFrom(rs, 5),Utils.getNthColumnRecordsFrom(rs, 4));
+		source = e.getSource();
 		
-			
-		} else if (command.equals("cBox") && state == State.editing) {
-			JComboBox<Object> cb = (JComboBox<Object>) e.getSource();
-			state = State.editing;
-			app.setTextField(cb.getSelectedItem());
-			app.selectTextField();
-		} else if (command.equals("textField") && state == state.editing) { // what if string is null
-			String record = app.getTextField();
-			String colName = app.getSelectedCellColumnName();
-			int idNumber = model.getIdnumber(app.getSelectedRow());
-			String idString = model.getIdString();
-			System.out.println("ID OF RECORD IS ....................................." + idNumber);
-			sb.append("UPDATE " + model.getLastSelectedTable() + " SET " + colName + " ='" + record + "' WHERE "+ idString + " = '" + idNumber + "';");
-			System.out.println(sb);
-			app.turnOnTableSelection();
-			state = State.editedState;
-			app.writeTextToCell();
-			app.clearCbox();
+		Logger.i(Logger.getMethodName(),command+" "+source);
+
+		switch (command) {
+		case Utils.COMMAND_NEW:
+			neww();
+			break;
+		case Utils.COMMAND_NEWDOC:
+			newDoc();
+			break;
+		case Utils.COMMAND_VIEW:
+			view();
+			break;
+		case Utils.COMMAND_EDIT:
+			edit();
+			break;
+		case Utils.COMMAND_SAVE:
+			save();
+			break;
+		case Utils.COMMAND_CANCEL:
+			cancel();
+			break;
+		case "cBox":
+			pick();
+			break;
+		case Utils.COMMAND_TEXT:
+			textEvent();
+			break;
 		}
 
 		Logger.i("CURRENT SQL STATE : " + sb.toString());
-		updateButtonsState();
+	}
+
+	private void neww() {
+		if(model.getColumnNames() == null){
+			Logger.e(Logger.getMethodName(), "select Table First");
+			return;
+		}
+		AddRecordFrame arf = new AddRecordFrame(model, model.getColumnNamesWithoutID(), model.getForeignKeysOf(model.getLastSelectedTable()));
+		List<String> response = arf.getResponse();
+		if (response != null) {
+			String insert = Utils.getSqlValuesStringFromList(response, model.getLastSelectedTable(), model.getColumnNamesWithoutID());
+			Logger.i(Logger.getMethodName(), insert);
+			sb.append(insert);
+			Controller.refreshTables(model, app);
+		}
+		//Controller.refreshTables(model, app); // WITHOUT THIS ITS A BUG - update
+												// - corrected bug
+
+	}
+
+	private void newDoc() {
+
+		new Document(app,model);
+	}
+
+	private void view() {
+		//ResultSet rs = model.executeQuerry("select * from cds_michal.t_btn_sql");
+		//new QuerryFrame(model, Utils.getNthColumnRecordsFrom(rs, 3), Utils.getNthColumnRecordsFrom(rs, 5), Utils.getNthColumnRecordsFrom(rs, 4));
+
+		    Workbook wb = new HSSFWorkbook(); //Excell workbook
+		    Sheet sheet = wb.createSheet(); //WorkSheet
+		    Row row = sheet.createRow(2); //Row created at line 3
+		    TableModel tm = model.getCurrentTableModel();
+
+		    Row headerRow = sheet.createRow(0); //Create row at line 0
+		    for(int headings = 0; headings < tm.getColumnCount(); headings++){ //For each column
+		        headerRow.createCell(headings).setCellValue(tm.getColumnName(headings));//Write column name
+		    }
+
+		    for(int rows = 0; rows < tm.getRowCount(); rows++){ //For each table row
+		        for(int cols = 0; cols < tm.getColumnCount(); cols++){ //For each table column
+		            row.createCell(cols).setCellValue(tm.getValueAt(rows, cols).toString()); //Write value
+		        }
+
+		        //Set the row to the next one in the sequence 
+		        row = sheet.createRow((rows + 3)); 
+		    }
+		    try {
+				wb.write(new FileOutputStream(Paths.get("D:\\eclipse_workspace\\Magazyn\\wb.xls").toString()));
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}//Save the file     
+		
+		    try {
+				wb.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+	}
+
+	private void edit() {
+		try {
+			app.clearCbox();
+			app.writeCellToText();
+			app.populateCbox(app.getColumnRecords()); // triggers cBox event
+			app.turnOffTableSelection();
+		} catch (Exception ee) {
+			Logger.e(Logger.getMethodName(),ee.getMessage());
+		}
+	}
+
+	private void textEvent() {
+		// what
+		// if
+		// string
+		// is
+		// null
+		String record = app.getTextField();
+		String colName = app.getSelectedCellColumnName();
+		int row = app.getSelectedRow();
+		if(row<0){
+			Logger.e(Logger.getMethodName()," Nothing selected");
+			app.turnOnTableSelection();
+			app.clearCbox();
+			return;
+		}
+		int idNumber = model.getIdnumber(row);
+		String idString = model.getIdString();
+		System.out.println("ID OF RECORD IS ....................................." + idNumber);
+		sb.append("UPDATE " + model.getLastSelectedTable() + " SET " + colName + " ='" + record + "' WHERE " + idString + " = '" + idNumber + "';");
+		System.out.println(sb);
+		app.turnOnTableSelection();
+		app.writeTextToCell();
+		app.clearCbox();
+	}
+
+	private void pick() {
+
+		JComboBox<Object> cb = (JComboBox<Object>) source;
+		app.setTextField(cb.getSelectedItem());
+		app.selectTextField();
+	}
+
+	private void save() {
+
+		if(sb.toString().equals("")){
+			Logger.e(Logger.getMethodName(),"empty SQL");
+			return;
+		}
+		model.executeUpdate(sb.toString());
+		Controller.refreshTables(model, app);
+		resetStringBuilder();
+	}
+
+	private void cancel() {
+		if(model.getColumnNames() == null){
+			Logger.e(Logger.getMethodName(), "select Table First");
+			return;
+		}
+		Controller.refreshTables(model, app);
+		resetStringBuilder();
+		app.turnOnTableSelection();
+		app.setTextField("");
+		app.clearCbox();
 	}
 
 	private void resetStringBuilder() {

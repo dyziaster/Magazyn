@@ -44,31 +44,25 @@ public class QuerryFrame extends JFrame {
 	private JMenuBar menuBar;
 	private DefaultTableModel dtm;
 	private JTable table;
+	private String frameName = "";
 
 	public QuerryFrame() {
 	}
 
-	public QuerryFrame(Model model, String listObject, String listNames, String listQuerrys) {
-
-		this.model = model;
-		this.listQuerrys = new ArrayList<>();
-		this.listObject = new ArrayList<>();
-		this.listNames = new ArrayList<>();
-
-		this.listQuerrys.add(listQuerrys);
-		this.listObject.add(listObject);
-		this.listNames.add(listNames);
-
-		init();
-
-	}
 
 	public QuerryFrame(Model model, List<String> listObject, List<String> listNames, List<String> listQuerrys) {
+
+		this(model,listObject,listNames,listQuerrys,"");
+
+	}
+	
+	public QuerryFrame(Model model, List<String> listObject, List<String> listNames, List<String> listQuerrys, String frameName) {
 
 		this.model = model;
 		this.listQuerrys = listQuerrys;
 		this.listObject = listObject;
 		this.listNames = listNames;
+		this.frameName = frameName;
 
 		init();
 
@@ -78,7 +72,7 @@ public class QuerryFrame extends JFrame {
 
 //		this.setModal(true);
 //		this.setAlwaysOnTop(true);
-
+		this.setTitle(frameName);
 		panel = new JPanel();
 		dtm = new DefaultTableModel();
 		table = new JTable(dtm);

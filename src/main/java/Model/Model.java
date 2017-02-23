@@ -28,17 +28,25 @@ public class Model {
 	// Database credentials
 	private static final String USER = "DAREK";
 	private static final String PASS = "krowy";
-	private static DefaultTableModel currentTableModel;
-
+	private DefaultTableModel currentTableModel;
 	private List<String> tableNames;
-
 	private Connection conn = null;
 	private String lastSelectedTable;
 	private List<String> columnNames;
 	private String idString;
 
+	
+	
+	public DefaultTableModel getCurrentTableModel() {
+		return currentTableModel;
+	}
+
+	public void setCurrentTableModel(DefaultTableModel currentTableModel) {
+		this.currentTableModel = currentTableModel;
+	}
+
 	public List<String> getColumnNames() {
-		return columnNames;
+		return this.columnNames;
 	}
 
 	public void setColumnNames(List<String> columnNames) {
@@ -96,11 +104,11 @@ public class Model {
 		return rs;
 	}
 
-	public List<String> getTableNamesList() {
+	public List<String> getTableNamesList() { // returns tables names from database
 		String querry = "SELECT table_name FROM information_schema.tables where table_schema='" + DATABASE + "'";
 		ResultSet rs = executeQuerry(querry);
 		if (rs == null)
-			Logger.e(Logger.getMethodName(), "result set returns null from "+querry);
+			Logger.e(Logger.getMethodName(), "tableNames are null sorry"+querry);
 		return Utils.getTableNamesFromRS(rs);
 	}
 
@@ -115,7 +123,7 @@ public class Model {
 	public int getIdnumber(int row) { // used to update record based on its ID
 		// add functionality that handles no ID column.
 		int column = 0;
-		for (Object s : columnNames) {
+		for (Object s : this.getColumnNames()) { // uses column names
 			System.out.println("SEARCHING ID FROM STRING ................." + s);
 			if ((s.toString()).substring(0, 3).equals("id_")) {
 				idString = s.toString();
@@ -133,56 +141,8 @@ public class Model {
 		return idString;
 	}
 
-	public String getSqlValuesStringFromList(List<String> list, String tableName) {
-		StringBuilder sb = new StringBuilder();
-		sb.append("INSERT INTO " + tableName + " VALUES (");
-		for (String s : list) {
-			sb.append("'" + s + "',");
-		}
-		sb.deleteCharAt(sb.length() - 1);
-		sb.append(");");
-		return sb.toString();
-	}
 
-
-
-	public DefaultTableModel getTableModelFromRS(ResultSet rs) {
-		Logger.i(Logger.getMethodName(),"creating table model for View");
-		ResultSetMetaData metaData;
-		Vector<String> columnNames = null;
-		Vector<Vector<Object>> data = null;
-		try {
-			metaData = rs.getMetaData();
-			// names of columns
-			columnNames = new Vector<String>();
-			int columnCount = metaData.getColumnCount();
-			for (int column = 1; column <= columnCount; column++) {
-				columnNames.add(metaData.getColumnName(column));
-			}
-
-			// data of the table
-			data = new Vector<Vector<Object>>();
-			while (rs.next()) {
-				Vector<Object> vector = new Vector<Object>();
-				for (int columnIndex = 1; columnIndex <= columnCount; columnIndex++) {
-					vector.add(rs.getObject(columnIndex));
-				}
-				data.add(vector);
-
-			}
-
-		} catch (SQLException e) {
-			Logger.e(Logger.getMethodName(), e.getMessage());
-		}
-		this.setColumnNames(columnNames);
-		currentTableModel = new DefaultTableModel(data, columnNames);
-		return currentTableModel;
-
-	}
-
-
-
-	public Map<String,String> getForeignKeysOf(String tableName) {
+	public Map<String,String> getForeignKeysOf(String tableName) { // must be in model
 		DatabaseMetaData metaData;
 		Vector<String> vector = new Vector<String>();
 		Map<String,String> map  = new HashMap<>();
@@ -201,7 +161,7 @@ public class Model {
 		return map;
 	}
 
-	public List<String> getColumnNamesWithoutID() {
+	public List<String> getColumnNamesWithoutID() { // uses columnNames
 		List<String> list = new ArrayList<>();
 		list.addAll(this.getColumnNames());
 		if(list.get(0).contains("id_"))  // Removing id table from adding to it
@@ -209,11 +169,5 @@ public class Model {
 		return list;
 	}
 
-	public List<String> getMenuItems() {
-		
-		ResultSet rs = this.executeQuerry("select form_name from cds_michal.t_form_cfg;");
-		List<String> list = Utils.getNthColumnRecordsFrom(rs, 1);
-		
-		return list;
-	}
+
 }

@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 
+import javax.swing.Icon;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.table.DefaultTableModel;
@@ -39,9 +40,13 @@ public class Utils {
 	public static final String t_typ_doc = "";
 	public static final String t_typ_kontrahent = "";
 	public static final String COMMAND_TEXT = "text";
+	public static final String COMMAND_VIEW = "view";
+	public static final String COMMAND_NEWDOC = "newdoc";
 
 	public static void printResultSet(ResultSet resultSet) {
 
+		if(resultSet == null)
+			Logger.e(Logger.getMethodName()," cannot print empty resultset");
 		ResultSetMetaData rsmd;
 		try {
 			rsmd = resultSet.getMetaData();
@@ -59,6 +64,28 @@ public class Utils {
 		} catch (SQLException e) {
 			Logger.e(Logger.getMethodName(), e.getMessage());
 		}
+	}
+	
+	public static List<String> getColumnRecordsFrom(ResultSet resultSet, String column) {
+		List<String> list = new ArrayList<>();
+
+		try {
+			ResultSetMetaData rsmd = resultSet.getMetaData();
+			//int columnsNumber = rsmd.getColumnCount();
+			while (resultSet.next()) {
+				System.out.println(resultSet.getString(column));
+				list.add(resultSet.getString(column));
+
+			}
+			
+			resultSet.beforeFirst();
+
+		} catch (SQLException e) {
+			Logger.e(Logger.getMethodName(), e.getMessage());
+		}
+		
+		System.out.println(list);
+		return list;
 	}
 
 	public static List<String> getNthColumnRecordsFrom(ResultSet resultSet, int column) {
@@ -82,6 +109,10 @@ public class Utils {
 		return list;
 	}
 	
+	public static String getFirstRecordFromRS(ResultSet resultSet) {
+		return getNthColumnRecordsFrom(resultSet,1).get(0);
+	}
+	
 	public static Map<String, Integer> getIdNameMapFrom(ResultSet resultSet) {
 		Map<String, Integer> map = new HashMap<>();
 		try {
@@ -90,7 +121,6 @@ public class Utils {
 			while (resultSet.next()) {
 				map.put(resultSet.getString(2),resultSet.getInt(1));
 			}
-			
 			resultSet.beforeFirst();
 
 		} catch (SQLException e) {
@@ -193,6 +223,62 @@ public class Utils {
 		}
 		
 		((DefaultTableModel)table.getModel()).fireTableDataChanged();
+	}
+	
+	public static String getSqlValuesStringFromList(List<String> list, String tableName) { // parser for returned Strings from NewFrame . move to utils
+		StringBuilder sb = new StringBuilder();
+		sb.append("INSERT INTO " + tableName + " VALUES (");
+		for (String s : list) {
+			sb.append("'" + s + "',");
+		}
+		sb.deleteCharAt(sb.length() - 1);
+		sb.append(");");
+		return sb.toString();
+	}
+	
+	public static DefaultTableModel getTableModelFromRS(ResultSet rs, Model model) { // proper method
+		Logger.i(Logger.getMethodName(),"creating table model for View");
+		ResultSetMetaData metaData;
+		Vector<String> columnNames = null;
+		Vector<Vector<Object>> data = null;
+		try {
+			metaData = rs.getMetaData();
+			// names of columns
+			columnNames = new Vector<String>();
+			int columnCount = metaData.getColumnCount();
+			for (int column = 1; column <= columnCount; column++) {
+				columnNames.add(metaData.getColumnName(column));
+			}
+
+			// data of the table
+			data = new Vector<Vector<Object>>();
+			while (rs.next()) {
+				Vector<Object> vector = new Vector<Object>();
+				for (int columnIndex = 1; columnIndex <= columnCount; columnIndex++) {
+					vector.add(rs.getObject(columnIndex));
+				}
+				data.add(vector);
+
+			}
+
+		} catch (SQLException e) {
+			Logger.e(Logger.getMethodName(), e.getMessage());
+		}		
+		
+		DefaultTableModel dtm = new DefaultTableModel(data, columnNames);
+		model.setCurrentTableModel(dtm);
+		model.setColumnNames(columnNames);
+		
+		return dtm;
+
+	}
+	
+	public static List<String> getColumnNamesWithoutID(List<String> colums) { // uses columnNames
+		List<String> list = new ArrayList<>();
+		list.addAll(colums);
+		if(list.get(0).contains("id_"))  // Removing id table from adding to it
+			list.remove(0);
+		return list;
 	}
 
 }

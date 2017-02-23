@@ -3,7 +3,10 @@ package Controller;
 import java.awt.event.ActionListener;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.List;
+
 import javax.swing.event.ListSelectionListener;
+import javax.swing.table.DefaultTableModel;
 
 import FrontEnd.App;
 import Model.Logger;
@@ -18,7 +21,8 @@ public class Controller {
 	private TableListener tableListener;
 	private CustomListener textListener;
 	private BtnListener btnListener;
-	private MenuListener menuListener;
+	private TableMenuListener menuListener;
+	private HelpMenuListener helpMenuListener; 
 
 	public Controller() {
 		this(null);
@@ -36,8 +40,8 @@ public class Controller {
 		textListener = new CustomListener(m, appFrame);
 		tableListener = new TableListener(m, appFrame);
 		btnListener = new BtnListener(m, appFrame);
-		menuListener = new MenuListener(m, appFrame);
-
+		menuListener = new TableMenuListener(m, appFrame);
+		helpMenuListener = new HelpMenuListener(m, appFrame);
 
 		onStart();
 	}
@@ -54,11 +58,11 @@ public class Controller {
 		Logger.setJta((appFrame.getAppender()));
 		Logger.i("CONTROLLER.ONSTART .............................................");
 
-		appFrame.buttonDisable(Utils.COMMAND_NEW);
-		appFrame.buttonDisable(Utils.COMMAND_CANCEL);
-		appFrame.buttonDisable(Utils.COMMAND_SAVE);
-		appFrame.buttonDisable(Utils.COMMAND_EDIT);
-		appFrame.buttonDisable(Utils.COMMAND_TEXT);
+//		appFrame.buttonDisable(Utils.COMMAND_NEW);
+//		appFrame.buttonDisable(Utils.COMMAND_CANCEL);
+//		appFrame.buttonDisable(Utils.COMMAND_SAVE);
+//		appFrame.buttonDisable(Utils.COMMAND_EDIT);
+//		appFrame.buttonDisable(Utils.COMMAND_TEXT);
 
 		appFrame.setVisible(true);
 		if (model.connectToDatabase()) {
@@ -67,9 +71,15 @@ public class Controller {
 			appFrame.setListListener(getListListener());
 			appFrame.setTableListener(getTableListener());
 			appFrame.setBtnListeners(getBtnListener());
-			appFrame.setMenuItems(model.getMenuItems(),menuListener);
+			appFrame.setHelpListeners(getHelpListener());
+			appFrame.setMenuItems(this.getMenuItems(),this.getMenuItemsNames(),menuListener);
 		}
 
+	}
+	
+
+	private ActionListener getHelpListener() {
+		return helpMenuListener;
 	}
 
 	private ActionListener getBtnListener() {
@@ -92,10 +102,26 @@ public class Controller {
 		this.appFrame = app;
 		System.out.println(app);
 	}
+	
+	public List<String> getMenuItems() {
+		
+		ResultSet rs = model.executeQuerry("select form_name from cds_michal.t_form_cfg;");
+		List<String> list = Utils.getNthColumnRecordsFrom(rs, 1);
+		
+		return list;
+	}
+	public List<String> getMenuItemsNames() {
+		
+		ResultSet rs = model.executeQuerry("select form_discription from cds_michal.t_form_cfg;");
+		List<String> list = Utils.getNthColumnRecordsFrom(rs, 1);
+		
+		return list;
+	}
 
 	public static void refreshTables(Model model, App appFrame) {
 		ResultSet rs = model.executeQuerry("SELECT * FROM " + model.getLastSelectedTable());
-		appFrame.setTableData(model.getTableModelFromRS(rs));
+		DefaultTableModel dtm = Utils.getTableModelFromRS(rs,model); // writes to columns, currenttablemodel
+		appFrame.setTableData(dtm);
 	}
 
 }

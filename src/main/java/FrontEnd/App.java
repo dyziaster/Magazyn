@@ -24,7 +24,7 @@ import javax.swing.text.DefaultCaret;
 
 import Controller.Controller;
 import Controller.ListListener;
-import Controller.MenuListener;
+import Controller.TableMenuListener;
 import Model.Utils;
 
 import javax.swing.JList;
@@ -61,20 +61,27 @@ public class App extends JFrame {
 	private JPanel panelBottom;
 	private JPanel panelButtons;
 	private JTextField editTextField;
-    private JTextArea output;
-    
+	private JTextArea output;
+
 	private String selectedCellString;
 	private JButton editBtn;
 	private JButton newBtn;
 	private JButton cancelBtn;
 	private JButton saveBtn;
-	
+
 	private String currentRecordValue = "";
 	private JComboBox cBox;
 	private JMenu menuFile;
+	private JMenu menuTables;
+	private JMenu menuHelp;
+	private JMenuItem toggleConsole;
 
 	private DefaultTableModel dtm;
 	private TableColumnModel tcm;
+
+	private JButton viewBtn;
+
+	private JButton newDocBtn;
 
 	public void setListListener(ListSelectionListener lsm) {
 		list.getSelectionModel().addListSelectionListener(lsm);
@@ -119,7 +126,7 @@ public class App extends JFrame {
 
 		TableColumnModel columnModel = table.getColumnModel();
 		table.setModel(model);
-		
+
 		int lmax = 2;
 		for (int i = 0; i < columnModel.getColumnCount(); i++) {
 			lmax = model.getColumnName(i).toString().length();
@@ -133,16 +140,18 @@ public class App extends JFrame {
 			}
 			columnModel.getColumn(i).setPreferredWidth(lmax * 8);
 		}
-		
-		((DefaultTableModel)table.getModel()).fireTableDataChanged();
+
+		((DefaultTableModel) table.getModel()).fireTableDataChanged();
 	}
 
 	public void setTableList(Object[] list) {
 		this.list.setListData(list);
 	}
+
 	public void setTableList(List<String> list) {
 		this.list.setListData(list.toArray());
 	}
+
 	/**
 	 * Launch the application.
 	 */
@@ -211,8 +220,15 @@ public class App extends JFrame {
 		JMenu menuEdit = new JMenu("Edit");
 		menuBar.add(menuEdit);
 
-		JMenu menuHelp = new JMenu("Help");
+		menuTables = new JMenu("Tables");
+		menuBar.add(menuTables);
+
+		menuHelp = new JMenu("Help");
 		menuBar.add(menuHelp);
+		
+		toggleConsole = new JMenuItem("console on/off");
+		toggleConsole.setActionCommand("toggleConsole");
+		menuHelp.add(toggleConsole);
 
 		BoxLayout bl = new BoxLayout(panelButtons, BoxLayout.Y_AXIS);
 		panelButtons.setLayout(bl);
@@ -221,7 +237,17 @@ public class App extends JFrame {
 		newBtn.setName(Utils.COMMAND_NEW);
 		newBtn.setActionCommand(Utils.COMMAND_NEW);
 		panelButtons.add(newBtn);
-
+		
+		newDocBtn = new JButton(Utils.COMMAND_NEWDOC);
+		newDocBtn.setName(Utils.COMMAND_NEWDOC);
+		newDocBtn.setActionCommand(Utils.COMMAND_NEWDOC);
+		panelButtons.add(newDocBtn);
+		
+		viewBtn = new JButton(Utils.COMMAND_VIEW);
+		viewBtn.setName(Utils.COMMAND_VIEW);
+		viewBtn.setActionCommand(Utils.COMMAND_VIEW);
+	//	panelButtons.add(viewBtn);
+		
 		editBtn = new JButton(Utils.COMMAND_EDIT);
 		editBtn.setActionCommand(Utils.COMMAND_EDIT);
 		editBtn.setName(Utils.COMMAND_EDIT);
@@ -231,7 +257,7 @@ public class App extends JFrame {
 		cancelBtn.setActionCommand(Utils.COMMAND_CANCEL);
 		cancelBtn.setName(Utils.COMMAND_CANCEL);
 		panelButtons.add(cancelBtn);
-		
+
 		saveBtn = new JButton(Utils.COMMAND_SAVE);
 		saveBtn.setActionCommand(Utils.COMMAND_SAVE);
 		saveBtn.setName(Utils.COMMAND_SAVE);
@@ -240,52 +266,58 @@ public class App extends JFrame {
 		editTextField = new JTextField();
 		editTextField.setName(Utils.COMMAND_TEXT);
 		panelButtons.add(editTextField);
-		//editTextField.setColumns(10);
-		editTextField.setMaximumSize( 
-			     new Dimension(Integer.MAX_VALUE, editTextField.getPreferredSize().height) );
-		editTextField.setActionCommand("textField");
-		
+		// editTextField.setColumns(10);
+		editTextField.setMaximumSize(new Dimension(Integer.MAX_VALUE, editTextField.getPreferredSize().height));
+		editTextField.setActionCommand(Utils.COMMAND_TEXT);
 
 		cBox = new JComboBox();
 		cBox.setActionCommand("cBox");
-		cBox.setMaximumSize( 
-			     new Dimension(Integer.MAX_VALUE, cBox.getPreferredSize().height) );
+		cBox.setMaximumSize(new Dimension(Integer.MAX_VALUE, cBox.getPreferredSize().height));
 		panelButtons.add(cBox);
-		
 
-        output = new JTextArea();
-        output.setColumns(10);
-        output.setRows(10);
-//        output.setLineWrap(true);
-        output.setWrapStyleWord(true);
-        DefaultCaret carret = (DefaultCaret)output.getCaret();
-        carret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
-        
-        panelBottom.setLayout(new BorderLayout());
-        JScrollPane scrollJTextArea = new JScrollPane(output);
-        scrollJTextArea.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
-        panelBottom.add(scrollJTextArea,BorderLayout.PAGE_END);
+		output = new JTextArea();
+		output.setColumns(10);
+		output.setRows(10);
+		// output.setLineWrap(true);
+		output.setWrapStyleWord(true);
+		DefaultCaret carret = (DefaultCaret) output.getCaret();
+		carret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
+
+		panelBottom.setLayout(new BorderLayout());
+		JScrollPane scrollJTextArea = new JScrollPane(output);
+		scrollJTextArea.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+		panelBottom.add(scrollJTextArea, BorderLayout.PAGE_END);
 
 		BorderLayout mgr = new BorderLayout();
 		mgr.setVgap(15);
 		panelMain.setLayout(mgr);
 		panelMain.add(scrollTable, BorderLayout.CENTER);
-		// panelMain.add(panelTable,BorderLayout.CENTER);
 		panelMain.add(scrollList, BorderLayout.WEST);
 		panelMain.add(panelBottom, BorderLayout.PAGE_END);
 		panelMain.add(panelButtons, BorderLayout.EAST);
-
 
 		this.setContentPane(panelMain);
 		this.setSize(800, 600);
 
 	}
 
-	public Set<Object> getColumnRecords() {
-		Set<Object> list = new TreeSet<>();
-		
-		int column = table.getSelectedColumn();
+	public void consoleToggle() {
 
+		if (panelBottom.isVisible())
+			panelBottom.setVisible(false);
+		else
+			panelBottom.setVisible(true);
+
+	}
+	
+	public void consoleClear(){
+		output.setText("");
+	}
+
+	public Set<Object> getColumnRecords() {
+		
+		Set<Object> list = new TreeSet<>();
+		int column = table.getSelectedColumn();
 		for (int i = 0; i < table.getRowCount(); i++) {
 			list.add(this.getValueAt(i, column).toString());
 		}
@@ -299,6 +331,8 @@ public class App extends JFrame {
 		saveBtn.addActionListener(listener);
 		cancelBtn.addActionListener(listener);
 		newBtn.addActionListener(listener);
+		newDocBtn.addActionListener(listener);
+		viewBtn.addActionListener(listener);
 		editTextField.addActionListener(listener);
 		cBox.addActionListener(listener);
 	}
@@ -323,9 +357,9 @@ public class App extends JFrame {
 
 		Component[] components = panelButtons.getComponents();
 		for (Component c : components) {
-				if (button.equals(c.getName())) {
-					c.setEnabled(true);
-				}
+			if (button.equals(c.getName())) {
+				c.setEnabled(true);
+			}
 		}
 	}
 
@@ -333,9 +367,9 @@ public class App extends JFrame {
 
 		Component[] components = panelButtons.getComponents();
 		for (Component c : components) {
-				if (button.equals(c.getName())) {
-					c.setEnabled(false);
-				}
+			if (button.equals(c.getName())) {
+				c.setEnabled(false);
+			}
 		}
 	}
 
@@ -389,12 +423,8 @@ public class App extends JFrame {
 		int column = table.getSelectedColumn();
 
 		if (row < 0 || column < 0) {
-			System.out.println("ROWS COLS SELECTED........" + row + " " + column + "...<0.....EXITING");
 			throw new Exception("No record is selected");
 		}
-
-		int id_ = getIdNumber(row);
-		System.out.println("ROWS COLS SELECTED........" + row + " " + column);
 		editTextField.setText(this.getValueAt(row, column));
 		this.selectTextField();
 	}
@@ -417,8 +447,8 @@ public class App extends JFrame {
 
 	public void writeTextToCell() {
 
-		DefaultTableModel dtm = (DefaultTableModel)table.getModel();
-		
+		DefaultTableModel dtm = (DefaultTableModel) table.getModel();
+
 		String text = editTextField.getText();
 		dtm.setValueAt(text, table.getSelectedRow(), table.getSelectedColumn());
 		editTextField.setText("");
@@ -426,14 +456,21 @@ public class App extends JFrame {
 	}
 
 	public void populateCbox(Iterable<Object> columnRecords) {
+		ActionListener l = cBox.getActionListeners()[0];
+		cBox.removeActionListener(l);
 		for (Object o : columnRecords) {
 			cBox.addItem(o);
 		}
+		cBox.addActionListener(l);
 
 	}
 
 	public void clearCbox() {
+		ActionListener l = cBox.getActionListeners()[0];
+		cBox.removeActionListener(l);
 		cBox.removeAllItems();
+		cBox.addActionListener(l);
+
 	}
 
 	public void turnOffTableSelection() {
@@ -452,31 +489,37 @@ public class App extends JFrame {
 		return output;
 	}
 
-	public void setMenuItems(List<String> menuItems, ActionListener listener) {
-		
-		for(String s : menuItems){
-			JMenuItem item = new JMenuItem(s);
-			item.setActionCommand(s);
+	public void setMenuItems(List<String> menuItems, List<String> names, ActionListener listener) {
+
+		for (int i = 0; i < menuItems.size(); i++) {
+
+			JMenuItem item = new JMenuItem(names.get(i));
+			item.setActionCommand(menuItems.get(i));
 			item.addActionListener(listener);
-			menuFile.add(item);
+			menuTables.add(item);
 		}
+
+	}
+
+	public void setHelpListeners(ActionListener listener) {
 		
+		toggleConsole.addActionListener(listener);
 		
 	}
 }
 
-class Comparator1 implements Comparator<Object>{
-	
+class Comparator1 implements Comparator<Object> {
+
 	@Override
 	public int compare(Object o1, Object o2) {
 		Double i1 = Double.valueOf(o1.toString());
 		Double i2 = Double.valueOf(o2.toString());
-		
-		if(i1>i2)
+
+		if (i1 > i2)
 			return 1;
-		else if(i1<i2)
+		else if (i1 < i2)
 			return -1;
-		else				
+		else
 			return 0;
 	}
 }
