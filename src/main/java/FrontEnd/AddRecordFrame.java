@@ -1,10 +1,12 @@
 package FrontEnd;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GraphicsEnvironment;
 import java.awt.GridBagLayout;
+import java.awt.GridLayout;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -34,7 +36,7 @@ public class AddRecordFrame extends JDialog {
 
 	public AddRecordFrame(Model model, List<String> columnNames, Map<String, String> foreignKeys) {
 		this.model = model;
-		this.setLayout(new GridBagLayout());
+		this.setLayout(new FlowLayout());
 		this.setModal(true);
 		this.setAlwaysOnTop(true);
 		this.setModalityType(ModalityType.APPLICATION_MODAL);
@@ -51,7 +53,9 @@ public class AddRecordFrame extends JDialog {
 		// search for values from that table,
 		// columns from constant
 
+		GridLayout gl = new GridLayout(0,3);
 		JPanel panel = new JPanel();
+		panel.setLayout(gl);
 		if (columnNames != null) {
 			Logger.i("...............................................ADDING BUTTONS");
 			for (int i = 0; i < columnNames.size(); i++) {
@@ -86,6 +90,7 @@ public class AddRecordFrame extends JDialog {
 				} else {
 					JTextField tf = new JTextField("", 10);
 					panel.add(tf);
+					panel.add(new JLabel());
 					listTextField.add(tf);
 				}
 			}
@@ -102,6 +107,7 @@ public class AddRecordFrame extends JDialog {
 			}
 		});
 		panel.add(button);
+		panel.setOpaque(true);
 
 		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 		setMinimumSize(new Dimension(screenSize.width / sizeConstant, screenSize.height / sizeConstant));

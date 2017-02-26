@@ -160,6 +160,11 @@ public class Model {
 		Logger.i(Logger.getMethodName(),vector+"list of foreign keys in table");
 		return map;
 	}
+	
+	public List<String> getColumnListFrom(String table) { // uses columnNames
+		ResultSet rs = this.executeQuerry("SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME =N'"+table+"';");
+		return Utils.getNthColumnRecordsFrom(rs, 4);
+	}
 
 	public List<String> getColumnNamesWithoutID() { // uses columnNames
 		List<String> list = new ArrayList<>();

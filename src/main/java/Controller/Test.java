@@ -35,6 +35,8 @@ public class Test {
 	// columnNames and table model debug it ...(gettablemodelfromrs)
 	// tworzyc wg nazwy kolumny nie numeru kolumny ------> solved
 	// populate checkbox triggers action event
+	//nr-enable false
+	// jak sql pusty to wpisac 1 do nr doc
 	
 	public static void createGui() throws ClassNotFoundException, SQLException{
 		Model m = new Model();

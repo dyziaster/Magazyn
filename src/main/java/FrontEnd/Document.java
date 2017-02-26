@@ -1,16 +1,14 @@
 package FrontEnd;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.EventQueue;
 
-import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
-import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
 import javax.swing.text.DefaultCaret;
 
-import Model.Logger;
 import Model.Model;
 import Model.Utils;
 import net.sourceforge.jdatepicker.impl.JDatePanelImpl;
@@ -32,10 +30,10 @@ import java.util.List;
 import java.util.Map;
 
 import javax.swing.JButton;
-import javax.swing.JTextPane;
 import javax.swing.JTextArea;
 import javax.swing.JScrollPane;
 import javax.swing.JComboBox;
+import java.awt.FlowLayout;
 
 public class Document extends JFrame {
 
@@ -44,24 +42,27 @@ public class Document extends JFrame {
 	 */
 	private static final long serialVersionUID = -573175262406727875L;
 	private JPanel contentPane;
-	private JTextField textUwagi;
-	private JTextField textNrSamochod;
-	private JTextField textNrKontener;
+	private JmTextField textUwagi;
+	private JmTextField textNrSamochod;
+	private JmTextField textNrKontener;
 	private JTextField textField_5;
 	private JTextArea notes;
-	private JDatePickerImpl datePickerDoc;
-	private JTextField textNrDoc;
-	private JDatePickerImpl datePickerDostawa;
+	private JmDatePickerImpl datePickerDoc;
+	private JLabel textNrDoc;
+	private JmDatePickerImpl datePickerDostawa;
 	private JButton saveBtn;
 	private JButton cancelBtn;
 	private JFrame frame;
 	private App app;
 	private Model model;
-	private JComboBox btnProducent;
-	private JComboBox btnDostawca;
-	private JComboBox btnWlasciciel;
+	private JmComboBox btnProducent;
+	private JmComboBox btnDostawca;
+	private JmComboBox btnWlasciciel;
 	private Map<String, Integer> map;
 	private JComboBox btnCfg;
+	private JButton clearBtn;
+	private JPanel panel;
+	private boolean saved;
 
 	/**
 	 * Launch the application.
@@ -92,9 +93,10 @@ public class Document extends JFrame {
 		this.model = model;
 		this.app = app;
 
+		saved = false;
 		ResultSet rs = model.executeQuerry("select * from t_cfg_doc;");
 		map = Utils.getIdNameMapFrom(rs);
-		
+
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		setBounds(100, 100, 738, 474);
 		contentPane = new JPanel();
@@ -102,7 +104,7 @@ public class Document extends JFrame {
 		setContentPane(contentPane);
 		contentPane.setLayout(new BorderLayout(0, 15));
 
-		JPanel panel = new JPanel();
+		panel = new JPanel();
 		contentPane.add(panel, BorderLayout.NORTH);
 		GridBagLayout gbl_panel = new GridBagLayout();
 		gbl_panel.columnWidths = new int[] { 0, 0, 0, 0, 0, 0, 0 };
@@ -139,20 +141,19 @@ public class Document extends JFrame {
 		m.setValue(new Date());
 		JDatePanelImpl datePanel = new JDatePanelImpl(m);
 
-		textNrDoc = new JTextField();
-		datePickerDostawa = new JDatePickerImpl(datePanel);
+		textNrDoc = new JLabel();
+		datePickerDostawa = new JmDatePickerImpl(datePanel);
 		GridBagConstraints gbc_textNrDoc = new GridBagConstraints();
 		gbc_textNrDoc.insets = new Insets(0, 0, 5, 5);
 		gbc_textNrDoc.fill = GridBagConstraints.HORIZONTAL;
 		gbc_textNrDoc.gridx = 3;
 		gbc_textNrDoc.gridy = 0;
 		panel.add(textNrDoc, gbc_textNrDoc);
-		textNrDoc.setColumns(10);
-		
+
 		UtilDateModel m2 = new UtilDateModel();
 		m2.setValue(new Date());
 		JDatePanelImpl datePanel2 = new JDatePanelImpl(m2);
-		datePickerDoc = new JDatePickerImpl(datePanel2);
+		datePickerDoc = new JmDatePickerImpl(datePanel2);
 		// textField_7 = new JTextField();
 		GridBagConstraints gbc_textField_7 = new GridBagConstraints();
 		gbc_textField_7.insets = new Insets(0, 0, 5, 5);
@@ -162,7 +163,7 @@ public class Document extends JFrame {
 		panel.add(datePickerDoc, gbc_textField_7);
 		// date.setColumns(10);
 
-		JLabel lblNewLabel_7 = new JLabel("Nr kontrahenta");
+		JLabel lblNewLabel_7 = new JLabel("Nr kontenera");
 		GridBagConstraints gbc_lblNewLabel_7 = new GridBagConstraints();
 		gbc_lblNewLabel_7.anchor = GridBagConstraints.EAST;
 		gbc_lblNewLabel_7.insets = new Insets(0, 0, 5, 5);
@@ -170,7 +171,7 @@ public class Document extends JFrame {
 		gbc_lblNewLabel_7.gridy = 0;
 		panel.add(lblNewLabel_7, gbc_lblNewLabel_7);
 
-		textNrKontener = new JTextField();
+		textNrKontener = new JmTextField();
 		GridBagConstraints gbc_textNrKontener = new GridBagConstraints();
 		gbc_textNrKontener.insets = new Insets(0, 0, 5, 0);
 		gbc_textNrKontener.fill = GridBagConstraints.HORIZONTAL;
@@ -195,7 +196,7 @@ public class Document extends JFrame {
 		gbc_lblNewLabel_8.gridy = 1;
 		panel.add(lblNewLabel_8, gbc_lblNewLabel_8);
 
-		textNrSamochod = new JTextField();
+		textNrSamochod = new JmTextField();
 		GridBagConstraints gbc_textNrSamochod = new GridBagConstraints();
 		gbc_textNrSamochod.insets = new Insets(0, 0, 5, 0);
 		gbc_textNrSamochod.fill = GridBagConstraints.HORIZONTAL;
@@ -203,15 +204,15 @@ public class Document extends JFrame {
 		gbc_textNrSamochod.gridy = 1;
 		panel.add(textNrSamochod, gbc_textNrSamochod);
 		textNrSamochod.setColumns(10);
-		
+
 		btnCfg = new JComboBox();
 		GridBagConstraints gbc_btnCfg = new GridBagConstraints();
 		gbc_btnCfg.insets = new Insets(0, 0, 5, 5);
 		gbc_btnCfg.fill = GridBagConstraints.HORIZONTAL;
 		gbc_btnCfg.gridx = 1;
 		gbc_btnCfg.gridy = 2;
-		for(String s : map.keySet())
-		btnCfg.addItem(s);
+		for (String s : map.keySet())
+			btnCfg.addItem(s);
 		panel.add(btnCfg, gbc_btnCfg);
 
 		JLabel lblNewLabel_5 = new JLabel("Data dostawy");
@@ -239,7 +240,7 @@ public class Document extends JFrame {
 		gbc_lblNewLabel_9.gridy = 2;
 		panel.add(lblNewLabel_9, gbc_lblNewLabel_9);
 
-		textUwagi = new JTextField();
+		textUwagi = new JmTextField();
 		GridBagConstraints gbc_textUwagi = new GridBagConstraints();
 		gbc_textUwagi.insets = new Insets(0, 0, 5, 0);
 		gbc_textUwagi.fill = GridBagConstraints.HORIZONTAL;
@@ -256,7 +257,7 @@ public class Document extends JFrame {
 		gbc_lblNewLabel_1.gridy = 3;
 		panel.add(lblNewLabel_1, gbc_lblNewLabel_1);
 
-		btnProducent = new JComboBox();
+		btnProducent = new JmComboBox();
 		GridBagConstraints gbc_btnProducent = new GridBagConstraints();
 		gbc_btnProducent.insets = new Insets(0, 0, 0, 5);
 		gbc_btnProducent.fill = GridBagConstraints.HORIZONTAL;
@@ -272,7 +273,7 @@ public class Document extends JFrame {
 		gbc_lblNewLabel_6.gridy = 3;
 		panel.add(lblNewLabel_6, gbc_lblNewLabel_6);
 
-		btnDostawca = new JComboBox();
+		btnDostawca = new JmComboBox();
 		GridBagConstraints gbc_btnDostawca = new GridBagConstraints();
 		gbc_btnDostawca.insets = new Insets(0, 0, 0, 5);
 		gbc_btnDostawca.fill = GridBagConstraints.HORIZONTAL;
@@ -288,7 +289,7 @@ public class Document extends JFrame {
 		gbc_lblNewLabel_10.gridy = 3;
 		panel.add(lblNewLabel_10, gbc_lblNewLabel_10);
 
-		btnWlasciciel = new JComboBox();
+		btnWlasciciel = new JmComboBox();
 		GridBagConstraints gbc_btnWlasciciel = new GridBagConstraints();
 		gbc_btnWlasciciel.fill = GridBagConstraints.HORIZONTAL;
 		gbc_btnWlasciciel.gridx = 5;
@@ -304,20 +305,37 @@ public class Document extends JFrame {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 
-				frame.dispose();
+				cancel();
 			}
 		});
+		panel_1.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
 		panel_1.add(cancelBtn);
 
 		saveBtn = new JButton("save");
 		saveBtn.addActionListener(new ActionListener() {
 
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				saveDoc();
+				if (saved == false) {
+					generateNrdoc();
+					saveDoc();
+				}
+				else
+					updateDoc();
 			}
 		});
 		panel_1.add(saveBtn);
+
+		clearBtn = new JButton("clear");
+		clearBtn.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				clearDoc();
+			}
+		});
+		panel_1.add(clearBtn);
 
 		JPanel panel_2 = new JPanel();
 
@@ -340,55 +358,94 @@ public class Document extends JFrame {
 		setVisible(true);
 
 		populateComboBoxes();
+
+		btnDostawca.setName("doc_dostawca_id");
+		btnProducent.setName("doc_producent_id");
+		btnWlasciciel.setName("doc_wlasciciel_id");
+		textNrKontener.setName("doc_nr_kontenera");
+		textNrSamochod.setName("doc_nr_samochodu");
+		textUwagi.setName("doc_uwagi");
+		datePickerDoc.setName("doc_data_doc");
+		datePickerDostawa.setName("doc_data_dostawy");
+
+	}
+
+	private void cancel() {
+		model.executeQuerry("grant insert,update on t_doc to PUBLIC");		
+		this.dispose();
+	}
+
+	private void clearDoc() {
+		// TODO Auto-generated method stub
+
+	}
+
+	private void generateNrdoc() {
+
+		String id_cfg_doc = String.valueOf(map.get(btnCfg.getSelectedItem()));
+		String querry = "select v_doc_nr.nr_doc from v_doc_nr where v_doc_nr.doc_cfg_doc_id=" + id_cfg_doc + ";";
+		ResultSet rs = model.executeQuerry(querry);
+		if (rs == null) {
+			textNrDoc.setText("1");
+		} else {
+			textNrDoc.setText(Utils.getFirstRecordFromRS(rs));
+		}
+
+	}
+
+	private void updateDoc() {
+
+		StringBuilder sb = new StringBuilder("");
+		sb.append("update t_doc set ");
+		String id = Utils.getFirstRecordFromRS(model.executeQuerry("SELECT id_doc FROM t_doc WHERE id_doc = (SELECT MAX(id_doc) FROM t_doc);"));
+		
+
+		Component[] components = panel.getComponents();
+		int i = 1;
+		for (Component c : components) {
+			if (c instanceof Access) {
+				if(i != 1)
+					sb.append(",");	
+				sb.append(c.getName());
+				sb.append("='");
+				sb.append(((Access) c).getOutput());
+				sb.append("'");
+				i++;
+			}
+		}
+
+		sb.append("where id_doc="+id);
+		model.executeUpdate(sb.toString());
 	}
 
 	private void saveDoc() {
-		ResultSet rs = null;
-		String nrDoc,producent, dostawca, wlasciciel, nrKontener, nrSamochod, uwagi = "";
+		saved = true;
+		
+		String nrDoc, producent, dostawca, wlasciciel, nrKontener, nrSamochod, uwagi = "";
 		String dataDoc, dataDostawy = "";
-		producent = btnProducent.getSelectedItem().toString();
-		dostawca = btnDostawca.getSelectedItem().toString();
-		wlasciciel = btnWlasciciel.getSelectedItem().toString();
-		nrKontener = textNrKontener.getText();
-		nrSamochod = textNrSamochod.getText();
-		uwagi = textUwagi.getText();
+		producent = btnProducent.getOutput();
+		dostawca = btnDostawca.getOutput();
+		wlasciciel = btnWlasciciel.getOutput();
+		nrKontener = textNrKontener.getOutput();
+		nrSamochod = textNrSamochod.getOutput();
+		uwagi = textUwagi.getOutput();
 		nrDoc = textNrDoc.getText();
-
-	    Date selectedDate = (Date) datePickerDoc.getModel().getValue();
-	    DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
-		dataDoc = df.format(selectedDate);
-
-	    Date selectedDate2 = (Date) datePickerDostawa.getModel().getValue();
-		dataDostawy =  df.format(selectedDate2);
-		
-		
-
-		rs = model.executeQuerry("select id_kon from v_kontrahent_doc where kon_nazwa ='"+producent+"';");
-		producent = Utils.getFirstRecordFromRS(rs);
-		rs = model.executeQuerry("select id_kon from v_kontrahent_doc where kon_nazwa ='"+dostawca+"';");
-		dostawca = Utils.getFirstRecordFromRS(rs);
-		rs = model.executeQuerry("select id_kon from v_kontrahent_doc where kon_nazwa ='"+wlasciciel+"';");
-		wlasciciel = Utils.getFirstRecordFromRS(rs);
+		dataDoc = datePickerDoc.getOutput();
+		dataDostawy = datePickerDostawa.getOutput();
 
 		String docDelete = "0";
 		String docView = "1";
 		String docOdbiorcaId = "1"; // firma Dareks
-		
+
 		String cfgDoc = String.valueOf(map.get(btnCfg.getSelectedItem()));
 		
-		List<String> list = Arrays.asList(nrDoc,docDelete,docView,dataDostawy,dataDoc,nrKontener,nrSamochod,cfgDoc,producent,dostawca,dostawca,wlasciciel,docOdbiorcaId,uwagi);
-		//rs = model.executeQuerry("SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME ='t_doc';");
-		//List<String> list2 =  Utils.getNthColumnRecordsFrom(rs, 1);
-		//System.out.println("ta allfasldsald"+list2);
-		
-		String values = "('"+nrDoc+"','"+docDelete+"','"+docView+"','"+dataDostawy+"','"+dataDoc+"','"+nrKontener+"','"+nrSamochod+"','"+cfgDoc+"','"+producent+"','"+dostawca+"','"+wlasciciel+"','"+docOdbiorcaId+"','"+uwagi+"')";
-		String querry2 = Utils.getSqlValuesStringFromList(list, "t_doc");
-		String querry = "INSERT INTO t_doc (nr_doc,doc_delete,doc_view,doc_data_dostawy,doc_data_doc,doc_nr_kontenera,doc_nr_samochodu,doc_cfg_doc_id,doc_producent_id,doc_dostawca_id,doc_wlasciciel_id,doc_odbiorca_id,doc_uwagi) VALUES "+values+";";
-
-		
-		Logger.i(Logger.getMethodName(),querry);
-		model.executeUpdate(querry);
-		dispose();
+		List<String> list = Arrays.asList(nrDoc, docDelete, docView, dataDostawy, dataDoc, nrKontener, nrSamochod, cfgDoc, producent, dostawca, wlasciciel, docOdbiorcaId, uwagi);
+		List<String> list2 = Utils.getColumnNamesWithoutID(model.getColumnListFrom("t_doc"));
+		String querry2 = Utils.getSqlValuesStringFromList(list, "t_doc", list2);
+	
+		model.executeUpdate(querry2);
+		model.executeQuerry("revoke insert,update on t_doc from PUBLIC"); // RACE CONDITION <--------------------
+		btnCfg.setEnabled(false);
 	}
 
 	private void populateComboBoxes() {
@@ -399,5 +456,50 @@ public class Document extends JFrame {
 			btnProducent.addItem(s);
 			btnWlasciciel.addItem(s);
 		}
+	}
+
+	class JmTextField extends JTextField implements Access {
+
+		@Override
+		public String getOutput() {
+			// TODO Auto-generated method stub
+			return super.getText();
+		}
+
+	}
+
+	class JmComboBox extends JComboBox implements Access {
+
+		@Override
+		public String getOutput() {
+			ResultSet rs = model.executeQuerry("select id_kon from v_kontrahent_doc where kon_nazwa ='" + super.getSelectedItem() + "';");
+			return Utils.getFirstRecordFromRS(rs);
+		}
+
+	}
+
+	class JmDatePickerImpl extends JDatePickerImpl implements Access {
+
+		public JmDatePickerImpl(JDatePanelImpl datePanel) {
+			super(datePanel);
+		}
+
+		@Override
+		public String getOutput() {
+			DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+			Date date = (Date) this.getModel().getValue();
+			return df.format(date);
+		}
+
+	}
+
+	class JmLabel extends JLabel implements Access {
+
+		@Override
+		public String getOutput() {
+			// TODO Auto-generated method stub
+			return super.getText();
+		}
+
 	}
 }
