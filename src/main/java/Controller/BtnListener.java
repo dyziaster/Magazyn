@@ -86,10 +86,10 @@ public class BtnListener implements ActionListener {
 			Logger.e(Logger.getMethodName(), "select Table First");
 			return;
 		}
-		AddRecordFrame arf = new AddRecordFrame(model, model.getColumnNamesWithoutID(), model.getForeignKeysOf(model.getLastSelectedTable()));
+		AddRecordFrame arf = new AddRecordFrame(model, model.getColumnNamesWithoutID(model.getLastSelectedTable()), model.getForeignKeysOf(model.getLastSelectedTable()));
 		List<String> response = arf.getResponse();
 		if (response != null) {
-			String insert = Utils.getSqlValuesStringFromList(response, model.getLastSelectedTable(), model.getColumnNamesWithoutID());
+			String insert = Utils.getSqlValuesStringFromList(response, model.getLastSelectedTable(), model.getColumnNamesWithoutID(model.getLastSelectedTable()));
 			Logger.i(Logger.getMethodName(), insert);
 			sb.append(insert);
 			Controller.refreshTables(model, app);

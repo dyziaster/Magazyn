@@ -13,10 +13,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 
-
 import javax.swing.table.DefaultTableModel;
 
-
+import com.mysql.cj.core.util.Util;
 
 public class Model {
 
@@ -35,8 +34,6 @@ public class Model {
 	private List<String> columnNames;
 	private String idString;
 
-	
-	
 	public DefaultTableModel getCurrentTableModel() {
 		return currentTableModel;
 	}
@@ -55,14 +52,14 @@ public class Model {
 
 	public boolean connectToDatabase() {
 
-		Logger.i(Logger.getMethodName(),"Connecting to a selected database...");
+		Logger.i(Logger.getMethodName(), "Connecting to a selected database...");
 		boolean connected = false;
 
 		try {
 			Class.forName(JDBC_DRIVER);
 			conn = DriverManager.getConnection(DB_URL, USER, PASS);
 			connected = true;
-			Logger.i(Logger.getMethodName(),"Connected database successfully...");
+			Logger.i(Logger.getMethodName(), "Connected database successfully...");
 
 		} catch (ClassNotFoundException e) {
 			Logger.e(Logger.getMethodName(), e.getMessage());
@@ -104,11 +101,12 @@ public class Model {
 		return rs;
 	}
 
-	public List<String> getTableNamesList() { // returns tables names from database
+	public List<String> getTableNamesList() { // returns tables names from
+												// database
 		String querry = "SELECT table_name FROM information_schema.tables where table_schema='" + DATABASE + "'";
 		ResultSet rs = executeQuerry(querry);
 		if (rs == null)
-			Logger.e(Logger.getMethodName(), "tableNames are null sorry"+querry);
+			Logger.e(Logger.getMethodName(), "tableNames are null sorry" + querry);
 		return Utils.getTableNamesFromRS(rs);
 	}
 
@@ -141,38 +139,58 @@ public class Model {
 		return idString;
 	}
 
-
-	public Map<String,String> getForeignKeysOf(String tableName) { // must be in model
+	public Map<String, String> getForeignKeysOf(String tableName) { // must be
+																	// in model
 		DatabaseMetaData metaData;
 		Vector<String> vector = new Vector<String>();
-		Map<String,String> map  = new HashMap<>();
+		Map<String, String> map = new HashMap<>();
 		try {
 			metaData = conn.getMetaData();
 			ResultSet foreignKeys = metaData.getImportedKeys(conn.getCatalog(), null, tableName);
 			while (foreignKeys.next()) {
-				map.put( foreignKeys.getString("FKCOLUMN_NAME"),foreignKeys.getString("PKTABLE_NAME"));
+				map.put(foreignKeys.getString("FKCOLUMN_NAME"), foreignKeys.getString("PKTABLE_NAME"));
 			}
-			
+
 		} catch (SQLException e) {
 			Logger.e(Logger.getMethodName(), e.getMessage());
 		}
-		
-		Logger.i(Logger.getMethodName(),vector+"list of foreign keys in table");
+
+		Logger.i(Logger.getMethodName(), vector + "list of foreign keys in table");
 		return map;
 	}
-	
-	public List<String> getColumnListFrom(String table) { // uses columnNames
-		ResultSet rs = this.executeQuerry("SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME =N'"+table+"';");
+
+	public String getPrimaryKeyOf(String tableName) { // must be in model
+		DatabaseMetaData metaData;
+		String pk = "";
+		try {
+			metaData = conn.getMetaData();
+			ResultSet primaryKey = metaData.getPrimaryKeys(conn.getCatalog(), null, tableName);
+			while (primaryKey.next())
+				pk = primaryKey.getString("COLUMN_NAME");
+
+		} catch (SQLException e) {
+			Logger.e(Logger.getMethodName(), e.getMessage());
+		}
+		Logger.i(Logger.getMethodName(), "primary key is " + pk);
+		return pk;
+	}
+
+	public List<String> getColumnListFrom(String table) {
+		ResultSet rs = this.executeQuerry("SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME =N'" + table + "';");
 		return Utils.getNthColumnRecordsFrom(rs, 4);
 	}
 
-	public List<String> getColumnNamesWithoutID() { // uses columnNames
+	public List<String> getColumnNamesWithoutID(String table) { // uses columnNames
+		String ID = this.getPrimaryKeyOf(table);
 		List<String> list = new ArrayList<>();
 		list.addAll(this.getColumnNames());
-		if(list.get(0).contains("id_"))  // Removing id table from adding to it
-			list.remove(0);
+		for (String s : list) {
+			if (s.equals(ID)) {
+				list.remove(s);
+				break;
+			}
+		}
 		return list;
 	}
-
 
 }

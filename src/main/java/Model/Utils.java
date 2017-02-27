@@ -109,8 +109,8 @@ public class Utils {
 		return list;
 	}
 	
-	public static String getFirstRecordFromRS(ResultSet resultSet) {
-		return getNthColumnRecordsFrom(resultSet,1).get(0);
+	public static String getFirstRecordFromRS(ResultSet rs) {
+		return getNthColumnRecordsFrom(rs,1).get(0);
 	}
 	
 	public static Map<String, Integer> getIdNameMapFrom(ResultSet resultSet) {
@@ -130,6 +130,8 @@ public class Utils {
 		Logger.i(Logger.getMethodName(),map);
 		return map;
 	}
+	
+	
 	
 	public static List<String> getTableNamesFromRS(ResultSet rs) {
 

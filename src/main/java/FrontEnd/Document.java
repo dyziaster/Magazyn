@@ -6,9 +6,13 @@ import java.awt.EventQueue;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
+import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableColumnModel;
 import javax.swing.text.DefaultCaret;
 
+import Model.Logger;
 import Model.Model;
 import Model.Utils;
 import net.sourceforge.jdatepicker.impl.JDatePanelImpl;
@@ -21,7 +25,10 @@ import java.awt.GridBagConstraints;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
@@ -32,6 +39,7 @@ import java.util.Map;
 import javax.swing.JButton;
 import javax.swing.JTextArea;
 import javax.swing.JScrollPane;
+import javax.swing.JTable;
 import javax.swing.JComboBox;
 import java.awt.FlowLayout;
 
@@ -46,7 +54,6 @@ public class Document extends JFrame {
 	private JmTextField textNrSamochod;
 	private JmTextField textNrKontener;
 	private JTextField textField_5;
-	private JTextArea notes;
 	private JmDatePickerImpl datePickerDoc;
 	private JLabel textNrDoc;
 	private JmDatePickerImpl datePickerDostawa;
@@ -63,6 +70,18 @@ public class Document extends JFrame {
 	private JButton clearBtn;
 	private JPanel panel;
 	private boolean saved;
+	private JTable table;
+	private TableColumnModel tcm;
+	private JLabel sum1;
+	private JLabel sum2;
+	private JmTextField wagaNetto;
+	private JmTextField iloscSzt;
+	private JmTextField razem;
+	private JmTextField wagaRyby;
+	private JmTextField wagaBrutto;
+	private JmTextField podsumowanie;
+	private Map<String, Integer> mapTowar;
+	private Map<String, Integer> mapMagazyn;
 
 	/**
 	 * Launch the application.
@@ -96,6 +115,15 @@ public class Document extends JFrame {
 		saved = false;
 		ResultSet rs = model.executeQuerry("select * from t_cfg_doc;");
 		map = Utils.getIdNameMapFrom(rs);
+
+		table = new JTable();
+		tcm = table.getColumnModel();
+		table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+		table.setColumnSelectionAllowed(false);
+		table.setRowSelectionAllowed(false);
+		table.setCellSelectionEnabled(true);
+		table.getTableHeader().setReorderingAllowed(false);
+		JScrollPane scrollTable = new JScrollPane(table);
 
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		setBounds(100, 100, 738, 474);
@@ -314,14 +342,12 @@ public class Document extends JFrame {
 		saveBtn = new JButton("save");
 		saveBtn.addActionListener(new ActionListener() {
 
-
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				if (saved == false) {
 					generateNrdoc();
 					saveDoc();
-				}
-				else
+				} else
 					updateDoc();
 			}
 		});
@@ -338,26 +364,21 @@ public class Document extends JFrame {
 		panel_1.add(clearBtn);
 
 		JPanel panel_2 = new JPanel();
-
-		notes = new JTextArea();
-		// notes.setColumns(10);
-		// notes.setRows(10);
-		// output.setLineWrap(true);
-		notes.setWrapStyleWord(true);
-		DefaultCaret carret = (DefaultCaret) notes.getCaret();
-		carret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
 		panel_2.setLayout(new BorderLayout());
-		JScrollPane scrollJTextArea = new JScrollPane(notes);
-		scrollJTextArea.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
-		panel_2.add(scrollJTextArea, BorderLayout.CENTER);
+		JLabel lblNotes = new JLabel("Notes");
+		panel_2.add(lblNotes, BorderLayout.NORTH);
+		panel_2.add(scrollTable, BorderLayout.CENTER);
+		JPanel panel_3 = new JPanel();
+		sum1 = new JLabel("");
+		sum2 = new JLabel("");
+		panel_3.add(sum1);
+		panel_3.add(sum2);
+		panel_2.add(panel_3, BorderLayout.SOUTH);
 
 		contentPane.add(panel_2, BorderLayout.CENTER);
-
-		JLabel lblNewLabel_11 = new JLabel("Notes");
-		panel_2.add(lblNewLabel_11, BorderLayout.NORTH);
-		setVisible(true);
-
+		contentPane.add(this.makePanel3(), BorderLayout.SOUTH);
 		populateComboBoxes();
+		setVisible(true);
 
 		btnDostawca.setName("doc_dostawca_id");
 		btnProducent.setName("doc_producent_id");
@@ -370,8 +391,176 @@ public class Document extends JFrame {
 
 	}
 
+	private JPanel makePanel3() {
+		JPanel panel = new JPanel();
+
+		GridBagLayout gbl_panel = new GridBagLayout();
+		gbl_panel.columnWidths = new int[] { 0, 0, 0, 0, 0, 0, 0 };
+		gbl_panel.rowHeights = new int[] { 0, 0, 0, 0, 0 };
+		gbl_panel.columnWeights = new double[] { 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, Double.MIN_VALUE };
+		gbl_panel.rowWeights = new double[] { 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE };
+		panel.setLayout(gbl_panel);
+
+		GridBagConstraints gbc = new GridBagConstraints();
+		gbc.insets = new Insets(0, 0, 5, 5);
+		gbc.fill = GridBagConstraints.HORIZONTAL;
+
+		JmComboBox nazwaTowaru = new JmComboBox();
+		nazwaTowaru.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				JComboBox cbox = (JComboBox) e.getSource();
+				String item = cbox.getSelectedItem().toString();
+				int id = mapTowar.get(item);
+				ResultSet rs = model.executeQuerry("select * from v_towar_show where id_tow=" + id + ";");
+
+				try {
+					while (rs.next()) {
+						wagaRyby.setText(rs.getString("tow_waga_ryby"));
+						wagaRyby.grabFocus();
+						wagaNetto.setText(rs.getString("tow_waga_netto"));
+						wagaBrutto.setText(rs.getString("tow_waga_brutto"));
+						iloscSzt.grabFocus();
+					}
+				} catch (SQLException e1) {
+					Logger.e(Logger.getMethodName(), e1.getMessage());
+				}
+			}
+		});
+		nazwaTowaru.setName("Towar");
+		gbc.gridwidth = 3;
+		gbc.gridx = 0;
+		gbc.gridy = 1;
+		gbc.weightx = 1;
+		panel.add(nazwaTowaru, gbc);
+		ResultSet rs = model.executeQuerry("select * from v_towar_show");
+		mapTowar = Utils.getIdNameMapFrom(rs);
+
+		ActionListener al = nazwaTowaru.getActionListeners()[0];
+		nazwaTowaru.removeActionListener(al);
+		for (String s : mapTowar.keySet()) {
+			nazwaTowaru.addItem(s);
+		}
+		nazwaTowaru.addActionListener(al);
+
+		JmComboBox magazyn = new JmComboBox();
+		magazyn.setName("magazyn");
+		gbc.gridheight = 1;
+		gbc.gridwidth = 1;
+		gbc.gridx = 0;
+		gbc.gridy = 3;
+		gbc.weightx = 1;
+		panel.add(magazyn, gbc);
+		rs = model.executeQuerry("select * from v_magazyn");
+		mapMagazyn = Utils.getIdNameMapFrom(rs);
+		for (String s : mapMagazyn.keySet()) {
+			magazyn.addItem(s);
+		}
+
+		UtilDateModel m = new UtilDateModel();
+		m.setValue(new Date());
+		JDatePanelImpl datePanel = new JDatePanelImpl(m);
+		JmDatePickerImpl dataPolowu = new JmDatePickerImpl(datePanel);
+		gbc.gridx = 2;
+		gbc.gridy = 3;
+		panel.add(dataPolowu, gbc);
+
+		UtilDateModel m2 = new UtilDateModel();
+		m2.setValue(new Date());
+		JDatePanelImpl datePanel2 = new JDatePanelImpl(m2);
+		JmDatePickerImpl dataZamrozenia = new JmDatePickerImpl(datePanel2);
+		gbc.gridx = 2;
+		gbc.gridy = 5;
+		panel.add(dataZamrozenia, gbc);
+
+		UtilDateModel m3 = new UtilDateModel();
+		m3.setValue(new Date());
+		JDatePanelImpl datePanel3 = new JDatePanelImpl(m3);
+		JmDatePickerImpl dataProdukcji = new JmDatePickerImpl(datePanel3);
+		gbc.gridx = 2;
+		gbc.gridy = 7;
+		panel.add(dataProdukcji, gbc);
+
+		JmTextField nrPartiiZew = new JmTextField(panel, "", 0, 5, null, null);
+		JmTextField nrPartiiWew = new JmTextField(panel, "", 0, 7, null, null);
+		JmTextField kod1 = new JmTextField(panel, "", 1, 3, null, null);
+		JmTextField kod2 = new JmTextField(panel, "", 1, 5, null, null);
+
+		FocusListener fl = new TextFocusListener();
+		wagaNetto = new JmTextField(panel, "", 3, 1, fl, "wagaNetto");// A
+		iloscSzt = new JmTextField(panel, "", 4, 1, fl, "iloscSzt");// B
+		razem = new JmTextField(panel, "", 5, 1, fl, "razem");// C
+		wagaRyby = new JmTextField(panel, "", 3, 3, fl, "wagaRyby");
+		wagaBrutto = new JmTextField(panel, "", 3, 5, fl, "wagaBrutto");// D
+		podsumowanie = new JmTextField(panel, "", 4, 5, fl, "podsumowanie");// E
+
+		new JmLabel(panel, "Towar", 0, 0, 3, 1);
+		new JmLabel(panel, "Waga Netto", 3, 0);
+		new JmLabel(panel, "Ilosc", 4, 0);
+		new JmLabel(panel, "Razem", 5, 0);
+		new JmLabel(panel, "Magazyn", 0, 2);
+		new JmLabel(panel, "kod kreskowy 1", 1, 2);
+		new JmLabel(panel, "data polowu", 2, 2);
+		new JmLabel(panel, "waga ryby", 3, 2);
+		new JmLabel(panel, "Nr partii zew", 0, 4);
+		new JmLabel(panel, "kod kreskowy 2", 1, 4);
+		new JmLabel(panel, "data zamrozenia", 2, 4);
+		new JmLabel(panel, "Waga brutto", 3, 4);
+		new JmLabel(panel, "Waga total", 4, 4);	
+		new JmLabel(panel, "Nr partii wew", 0, 6);	
+		new JmLabel(panel, "data produkcji", 2, 6);	
+
+
+		return panel;
+	}
+
+	private void generateTableView() {
+
+		String id = Utils.getFirstRecordFromRS(model.executeQuerry("SELECT id_doc FROM t_doc WHERE id_doc = (SELECT MAX(id_doc) FROM t_doc);"));
+		String ID = textNrDoc.getText();
+		ResultSet rs = model.executeQuerry("select * from v_doc_s t1 where t1.doc_id=" + id + ";");
+		DefaultTableModel dtm = Utils.getTableModelFromRS(rs, model);
+		this.setTableData(dtm);
+		rs = model.executeQuerry("select sum(t1.doc_s_ilosc_szt_op) from v_doc_s t1 where t1.doc_id=" + id + " and t1.doc_s_delete=0");
+		sum1.setText(Utils.getFirstRecordFromRS(rs));
+		rs = model.executeQuerry("select sum(t1.doc_s_ilosc_szt_op * t1.doc_s_waga_netto_op) from v_doc_s t1 where t1.doc_id=" + id + " and t1.doc_s_delete=0");
+		sum2.setText(Utils.getFirstRecordFromRS(rs));
+
+	}
+
+	public void setTableData(DefaultTableModel model) {
+
+		TableColumnModel columnModel = table.getColumnModel();
+		table.setModel(model);
+
+		int lmax = 2;
+		for (int i = 0; i < columnModel.getColumnCount(); i++) {
+			lmax = model.getColumnName(i).toString().length();
+			int lmaxx = 0;
+			for (int j = 0; j < model.getRowCount(); j++) {
+				Object value = this.getValueAt(j, i);
+				if (value != null)
+					lmaxx = value.toString().length();
+				if (lmaxx > lmax)
+					lmax = lmaxx;
+			}
+			columnModel.getColumn(i).setPreferredWidth(lmax * 8);
+		}
+
+		((DefaultTableModel) table.getModel()).fireTableDataChanged();
+	}
+
+	public String getValueAt(int row, int column) {
+		Object value = table.getModel().getValueAt(row, column);
+		if (value == null)
+			return "";
+		else
+			return value.toString();
+	}
+
 	private void cancel() {
-		model.executeQuerry("grant insert,update on t_doc to PUBLIC");		
+		// model.executeQuerry("grant insert,update on t_doc to PUBLIC");
 		this.dispose();
 	}
 
@@ -385,10 +574,14 @@ public class Document extends JFrame {
 		String id_cfg_doc = String.valueOf(map.get(btnCfg.getSelectedItem()));
 		String querry = "select v_doc_nr.nr_doc from v_doc_nr where v_doc_nr.doc_cfg_doc_id=" + id_cfg_doc + ";";
 		ResultSet rs = model.executeQuerry(querry);
-		if (rs == null) {
-			textNrDoc.setText("1");
-		} else {
-			textNrDoc.setText(Utils.getFirstRecordFromRS(rs));
+		try {
+			if (!rs.isBeforeFirst()) {
+				textNrDoc.setText("1");
+			} else {
+				textNrDoc.setText(Utils.getFirstRecordFromRS(rs));
+			}
+		} catch (SQLException e) {
+			Logger.e(Logger.getMethodName(), e.getMessage());
 		}
 
 	}
@@ -398,14 +591,13 @@ public class Document extends JFrame {
 		StringBuilder sb = new StringBuilder("");
 		sb.append("update t_doc set ");
 		String id = Utils.getFirstRecordFromRS(model.executeQuerry("SELECT id_doc FROM t_doc WHERE id_doc = (SELECT MAX(id_doc) FROM t_doc);"));
-		
 
 		Component[] components = panel.getComponents();
 		int i = 1;
 		for (Component c : components) {
 			if (c instanceof Access) {
-				if(i != 1)
-					sb.append(",");	
+				if (i != 1)
+					sb.append(",");
 				sb.append(c.getName());
 				sb.append("='");
 				sb.append(((Access) c).getOutput());
@@ -414,13 +606,13 @@ public class Document extends JFrame {
 			}
 		}
 
-		sb.append("where id_doc="+id);
+		sb.append("where id_doc=" + id);
 		model.executeUpdate(sb.toString());
 	}
 
 	private void saveDoc() {
 		saved = true;
-		
+
 		String nrDoc, producent, dostawca, wlasciciel, nrKontener, nrSamochod, uwagi = "";
 		String dataDoc, dataDostawy = "";
 		producent = btnProducent.getOutput();
@@ -438,13 +630,14 @@ public class Document extends JFrame {
 		String docOdbiorcaId = "1"; // firma Dareks
 
 		String cfgDoc = String.valueOf(map.get(btnCfg.getSelectedItem()));
-		
+
 		List<String> list = Arrays.asList(nrDoc, docDelete, docView, dataDostawy, dataDoc, nrKontener, nrSamochod, cfgDoc, producent, dostawca, wlasciciel, docOdbiorcaId, uwagi);
 		List<String> list2 = Utils.getColumnNamesWithoutID(model.getColumnListFrom("t_doc"));
 		String querry2 = Utils.getSqlValuesStringFromList(list, "t_doc", list2);
-	
+
 		model.executeUpdate(querry2);
-		model.executeQuerry("revoke insert,update on t_doc from PUBLIC"); // RACE CONDITION <--------------------
+		// model.executeQuerry("revoke insert,update on t_doc from PUBLIC"); //
+		// RACE CONDITION <--------------------
 		btnCfg.setEnabled(false);
 	}
 
@@ -459,6 +652,31 @@ public class Document extends JFrame {
 	}
 
 	class JmTextField extends JTextField implements Access {
+
+		public JmTextField() {
+
+		}
+
+		public JmTextField(JPanel panel, String name, int x, int y, FocusListener fl, String command) {
+
+			this(panel, name, x, y, 1, 1, fl, command);
+		}
+
+		public JmTextField(JPanel panel, String name, int x, int y, int w, int h, FocusListener fl, String command) {
+
+			GridBagConstraints gbc = new GridBagConstraints();
+			gbc.insets = new Insets(0, 0, 5, 5);
+			gbc.fill = GridBagConstraints.HORIZONTAL;
+			gbc.gridwidth = w;
+			gbc.gridheight = h;
+			gbc.gridx = x;
+			gbc.gridy = y;
+			gbc.weightx = 1;
+			this.setName(command);
+			this.setActionCommand(command);
+			this.addFocusListener(fl);
+			panel.add(this, gbc);
+		}
 
 		@Override
 		public String getOutput() {
@@ -494,6 +712,24 @@ public class Document extends JFrame {
 	}
 
 	class JmLabel extends JLabel implements Access {
+		public JmLabel(JPanel panel, String text, int x, int y) {
+
+			this(panel, text, x, y, 1, 1);
+		}
+
+		public JmLabel(JPanel panel, String text, int x, int y, int w, int h) {
+
+			GridBagConstraints gbc = new GridBagConstraints();
+			gbc.insets = new Insets(0, 0, 5, 5);
+			gbc.fill = GridBagConstraints.HORIZONTAL;
+			gbc.gridwidth = w;
+			gbc.gridheight = h;
+			gbc.gridx = x;
+			gbc.gridy = y;
+			gbc.weightx = 1;
+			this.setText(text);
+			panel.add(this, gbc);
+		}
 
 		@Override
 		public String getOutput() {
@@ -502,4 +738,68 @@ public class Document extends JFrame {
 		}
 
 	}
+
+	public class TextFocusListener implements FocusListener {
+
+		@Override
+		public void focusGained(FocusEvent e) {
+			// TODO Auto-generated method stub
+
+		}
+
+		@Override
+		public void focusLost(FocusEvent e) {
+			// wagaNetto = new JmTextField(panel,"",3,0,fl);//A
+			// iloscSzt = new JmTextField(panel,"",4,0,fl);//B
+			// razem = new JmTextField(panel,"",5,0,fl);//C
+			// wagaRyby = new JmTextField(panel,"",3,1,fl);
+			// wagaBrutto = new JmTextField(panel,"",3,2,fl);//D
+			// podsumowanie = new JmTextField(panel,"",4,2,fl);//E
+
+			try {
+
+				String name = e.getComponent().getName();
+
+				switch (name) {
+
+				case "wagaNetto":
+					double net = Double.valueOf(wagaNetto.getText());
+					double ilosc = Double.valueOf(iloscSzt.getText());
+					razem.setText(String.valueOf(net * ilosc));
+					break;
+				case "iloscSzt":
+					net = Double.valueOf(wagaNetto.getText());
+					ilosc = Double.valueOf(iloscSzt.getText());
+					razem.setText(String.valueOf(net * ilosc));
+					break;
+				case "razem":
+					net = Double.valueOf(wagaNetto.getText());
+					double total = Double.valueOf(razem.getText());
+					iloscSzt.setText(String.valueOf(total / net));
+					break;
+				case "wagaRyby":
+					break;
+				case "wagaBrutto":
+					break;
+				case "podsumowanie":
+					break;
+				}
+
+				double brutto = Double.valueOf(wagaBrutto.getText());
+				double ilosc = Double.valueOf(iloscSzt.getText());
+				podsumowanie.setText(String.valueOf(ilosc * brutto));
+				// double net = Double.valueOf(wagaNetto.getText());
+				// double ilosc = Double.valueOf(iloscSzt.getText());
+				// double total = Double.valueOf(razem.getText());
+				// double waga = Double.valueOf(wagaRyby.getText());
+				// double brutto = Double.valueOf(wagaBrutto.getText());
+				// double calosc = Double.valueOf(podsumowanie.getText());
+
+			} catch (Exception ee) {
+				Logger.e(Logger.getMethodName(), "Error - " + ee.getMessage());
+			}
+
+		}
+	}
+
 }
