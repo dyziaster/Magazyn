@@ -1,5 +1,6 @@
 package Model;
 
+import java.awt.event.ActionListener;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
@@ -10,13 +11,13 @@ import java.util.Map;
 import java.util.Vector;
 
 import javax.swing.Icon;
+import javax.swing.JComboBox;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumnModel;
 
 public class Utils {
-	
 
 	public static final String COMMAND_EDIT = "edit";
 	public static final String COMMAND_SAVE = "save";
@@ -45,8 +46,8 @@ public class Utils {
 
 	public static void printResultSet(ResultSet resultSet) {
 
-		if(resultSet == null)
-			Logger.e(Logger.getMethodName()," cannot print empty resultset");
+		if (resultSet == null)
+			Logger.e(Logger.getMethodName(), " cannot print empty resultset");
 		ResultSetMetaData rsmd;
 		try {
 			rsmd = resultSet.getMetaData();
@@ -65,25 +66,25 @@ public class Utils {
 			Logger.e(Logger.getMethodName(), e.getMessage());
 		}
 	}
-	
+
 	public static List<String> getColumnRecordsFrom(ResultSet resultSet, String column) {
 		List<String> list = new ArrayList<>();
 
 		try {
 			ResultSetMetaData rsmd = resultSet.getMetaData();
-			//int columnsNumber = rsmd.getColumnCount();
+			// int columnsNumber = rsmd.getColumnCount();
 			while (resultSet.next()) {
 				System.out.println(resultSet.getString(column));
 				list.add(resultSet.getString(column));
 
 			}
-			
+
 			resultSet.beforeFirst();
 
 		} catch (SQLException e) {
 			Logger.e(Logger.getMethodName(), e.getMessage());
 		}
-		
+
 		System.out.println(list);
 		return list;
 	}
@@ -92,13 +93,13 @@ public class Utils {
 		List<String> list = new ArrayList<>();
 		try {
 			ResultSetMetaData rsmd = resultSet.getMetaData();
-			//int columnsNumber = rsmd.getColumnCount();
+			// int columnsNumber = rsmd.getColumnCount();
 			while (resultSet.next()) {
 				System.out.println(resultSet.getString(column));
 				list.add(resultSet.getString(column));
 
 			}
-			
+
 			resultSet.beforeFirst();
 
 		} catch (SQLException e) {
@@ -108,18 +109,18 @@ public class Utils {
 		System.out.println(list);
 		return list;
 	}
-	
+
 	public static String getFirstRecordFromRS(ResultSet rs) {
-		return getNthColumnRecordsFrom(rs,1).get(0);
+		return getNthColumnRecordsFrom(rs, 1).get(0);
 	}
-	
+
 	public static Map<String, Integer> getIdNameMapFrom(ResultSet resultSet) {
 		Map<String, Integer> map = new HashMap<>();
 		try {
 			ResultSetMetaData rsmd = resultSet.getMetaData();
-			//int columnsNumber = rsmd.getColumnCount();
+			// int columnsNumber = rsmd.getColumnCount();
 			while (resultSet.next()) {
-				map.put(resultSet.getString(2),resultSet.getInt(1));
+				map.put(resultSet.getString(2), resultSet.getInt(1));
 			}
 			resultSet.beforeFirst();
 
@@ -127,12 +128,10 @@ public class Utils {
 			Logger.e(Logger.getMethodName(), e.getMessage());
 		}
 
-		Logger.i(Logger.getMethodName(),map);
+		Logger.i(Logger.getMethodName(), map);
 		return map;
 	}
-	
-	
-	
+
 	public static List<String> getTableNamesFromRS(ResultSet rs) {
 
 		ResultSetMetaData metaData = null;
@@ -154,27 +153,27 @@ public class Utils {
 		return vector;
 
 	}
-	
-	public static String getSqlValuesStringFromList(List<String> list, String tableName, List<String> list2) {
+
+	public static String getSqlValuesStringFromList(List<String> values, String tableName, List<String> columns) {
 		StringBuilder sb = new StringBuilder();
 		sb.append("INSERT INTO " + tableName + " (");
 
-		for (String s : list2) {
+		for (String s : columns) {
 			sb.append("" + s.toString() + ",");
 		}
 		sb.deleteCharAt(sb.length() - 1);
 		sb.append(") VALUES (");
 
-		for (String s : list) {
+		for (String s : values) {
 			sb.append("'" + s + "',");
 		}
 		sb.deleteCharAt(sb.length() - 1);
 		sb.append(");");
 		return sb.toString();
 	}
-	
+
 	public static DefaultTableModel getTableModelFromRS(ResultSet rs) {
-		Logger.i(Logger.getMethodName(),"creating table model for View");
+		Logger.i(Logger.getMethodName(), "creating table model for View");
 		ResultSetMetaData metaData;
 		Vector<String> columnNames = null;
 		Vector<Vector<Object>> data = null;
@@ -205,11 +204,11 @@ public class Utils {
 		return new DefaultTableModel(data, columnNames);
 
 	}
-	
-	public static void adjustColumnsOf(JTable table){
+
+	public static void adjustColumnsOf(JTable table) {
 
 		TableColumnModel columnModel = table.getColumnModel();
-		
+
 		int lmax = 2;
 		for (int i = 0; i < columnModel.getColumnCount(); i++) {
 			lmax = table.getColumnName(i).toString().length();
@@ -223,11 +222,20 @@ public class Utils {
 			}
 			columnModel.getColumn(i).setPreferredWidth(lmax * 8);
 		}
-		
-		((DefaultTableModel)table.getModel()).fireTableDataChanged();
+
+		((DefaultTableModel) table.getModel()).fireTableDataChanged();
 	}
-	
-	public static String getSqlValuesStringFromList(List<String> list, String tableName) { // parser for returned Strings from NewFrame . move to utils
+
+	public static String getSqlValuesStringFromList(List<String> list, String tableName) { // parser
+																							// for
+																							// returned
+																							// Strings
+																							// from
+																							// NewFrame
+																							// .
+																							// move
+																							// to
+																							// utils
 		StringBuilder sb = new StringBuilder();
 		sb.append("INSERT INTO " + tableName + " VALUES (");
 		for (String s : list) {
@@ -237,9 +245,10 @@ public class Utils {
 		sb.append(");");
 		return sb.toString();
 	}
-	
-	public static DefaultTableModel getTableModelFromRS(ResultSet rs, Model model) { // proper method
-		Logger.i(Logger.getMethodName(),"creating table model for View");
+
+	public static DefaultTableModel getTableModelFromRS(ResultSet rs, Model model) { // proper
+																						// method
+		Logger.i(Logger.getMethodName(), "creating table model for View");
 		ResultSetMetaData metaData;
 		Vector<String> columnNames = null;
 		Vector<Vector<Object>> data = null;
@@ -265,23 +274,41 @@ public class Utils {
 
 		} catch (SQLException e) {
 			Logger.e(Logger.getMethodName(), e.getMessage());
-		}		
-		
+		}
+
 		DefaultTableModel dtm = new DefaultTableModel(data, columnNames);
 		model.setCurrentTableModel(dtm);
 		model.setColumnNames(columnNames);
-		
+
 		return dtm;
 
 	}
 
-	
-	public static List<String> getColumnNamesWithoutID(List<String> colums) { // uses columnNames
+	public static List<String> getColumnNamesWithoutID(List<String> colums) { // uses
+																				// columnNames
 		List<String> list = new ArrayList<>();
 		list.addAll(colums);
-		if(list.get(0).contains("id_"))  // Removing id table from adding to it
+		if (list.get(0).contains("id_")) // Removing id table from adding to it
 			list.remove(0);
 		return list;
+	}
+
+	public static void addToComboBox(JComboBox<Object> cb, Iterable<?> list) {
+		ActionListener al = null;
+		if (cb.getActionListeners().length > 0) {
+			al = cb.getActionListeners()[0];
+			cb.removeActionListener(al);
+			cb.addItem("");
+			for (Object o : list) {
+				cb.addItem(o);
+			}
+			cb.addActionListener(al);
+		} else {
+			cb.addItem("");
+			for (Object o : list) {
+				cb.addItem(o);
+			}
+		}
 	}
 
 }

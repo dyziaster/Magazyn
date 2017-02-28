@@ -183,7 +183,7 @@ public class Model {
 	public List<String> getColumnNamesWithoutID(String table) { // uses columnNames
 		String ID = this.getPrimaryKeyOf(table);
 		List<String> list = new ArrayList<>();
-		list.addAll(this.getColumnNames());
+		list.addAll(this.getColumnListFrom(table));
 		for (String s : list) {
 			if (s.equals(ID)) {
 				list.remove(s);
