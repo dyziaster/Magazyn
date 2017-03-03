@@ -40,31 +40,7 @@ public class Tdocs extends JPanel {
 	/**
 	 * 
 	 */
-	private JPanel contentPane;
-	private JmTextField textUwagi;
-	private JmTextField textNrSamochod;
-	private JmTextField textNrKontener;
-	private JTextField textField_5;
-	private JmDatePickerImpl datePickerDoc;
-	private JLabel textNrDoc;
-	private JmDatePickerImpl datePickerDostawa;
-	private JButton saveBtn;
-	private JButton closeBtn;
-	private JFrame frame;
-	private Document document;
 	private Model model;
-	private JmComboBox btnProducent;
-	private JmComboBox btnDostawca;
-	private JmComboBox btnWlasciciel;
-	private Map<String, Integer> map;
-	private JmComboBox btnCfg;
-	private JButton newBtn;
-	private JPanel panel;
-	private boolean savedDoc;
-	private JTable table;
-	private TableColumnModel tcm;
-	private JLabel sum1;
-	private JLabel sum2;
 	private JmTextField wagaNetto;
 	private JmTextField iloscSzt;
 	private JmTextField razem;
@@ -86,18 +62,24 @@ public class Tdocs extends JPanel {
 	private boolean savedDocs;
 	private JButton save2Btn;
 	private String t_doc_id;
+	private String idToUpdate;
+	private Document document;
+	private UtilDateModel m3;
+	private UtilDateModel m2;
+	private UtilDateModel m;
+	private JButton newBtn;
 
 	public Tdocs() {
-		this(null,null);
+		this(null, null);
 	}
 
 	public Tdocs(final Document document, final Model model) { // final ????
 
-		this.document=document;
+		this.document = document;
 		this.model = model;
 		savedDocs = false;
 		panelDocs = this;
-		
+
 		GridBagLayout gbl_panel = new GridBagLayout();
 		gbl_panel.columnWidths = new int[] { 0, 0, 0, 0, 0, 0, 0 };
 		gbl_panel.rowHeights = new int[] { 0, 0, 0, 0, 0 };
@@ -111,7 +93,7 @@ public class Tdocs extends JPanel {
 
 		ResultSet rs = model.executeQuerry("select * from v_towar_show");
 		mapTowar = Utils.getIdNameMapFrom(rs);
-		nazwaTowaru = new JmComboBox(true, mapTowar,model);
+		nazwaTowaru = new JmComboBox(true, mapTowar, model);
 		nazwaTowaru.addActionListener(new ActionListener() {
 
 			@Override
@@ -149,7 +131,7 @@ public class Tdocs extends JPanel {
 
 		rs = model.executeQuerry("select * from v_magazyn");
 		mapMagazyn = Utils.getIdNameMapFrom(rs);
-		magazyn = new JmComboBox(true, mapMagazyn ,model);
+		magazyn = new JmComboBox(true, mapMagazyn, model);
 		magazyn.setName("doc_s_magazyn_id");
 		gbc.gridheight = 1;
 		gbc.gridwidth = 1;
@@ -157,7 +139,6 @@ public class Tdocs extends JPanel {
 		gbc.gridy = 3;
 		gbc.weightx = 1;
 		panelDocs.add(magazyn, gbc);
-		
 
 		Utils.addToComboBox(magazyn, mapMagazyn.keySet());
 
@@ -175,13 +156,40 @@ public class Tdocs extends JPanel {
 				if (inputValidated()) {
 					if (savedDocs == false) {
 						saveDocs(document.getDocId());
+						enterUpdateState();
 					} else
-						updateDocs();
+						updateDocs(idToUpdate);
+				}
+			}
+		});
+		
+		newBtn = new JButton("NEW");
+		gbc_button.insets = new Insets(5, 0, 5, 0);
+		gbc_button.fill = GridBagConstraints.HORIZONTAL;
+		gbc_button.gridx = 3;
+		gbc_button.gridy = 7;
+		panelDocs.add(newBtn, gbc_button);
+		newBtn.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				if (inputValidated()) {
+					
+					savedDocs = false;
+					clearComponents();
+					setBtn("SAVE");
+					
+					
+//					if (savedDocs == false) {
+//						saveDocs(document.getDocId());
+//						enterUpdateState();
+//					} else
+//						updateDocs(idToUpdate);
 				}
 			}
 		});
 
-		UtilDateModel m = new UtilDateModel();
+		m = new UtilDateModel();
 		m.setValue(new Date());
 		JDatePanelImpl datePanel = new JDatePanelImpl(m);
 		dataPolowu = new JmDatePickerImpl(datePanel);
@@ -190,7 +198,7 @@ public class Tdocs extends JPanel {
 		gbc.gridy = 3;
 		panelDocs.add(dataPolowu, gbc);
 
-		UtilDateModel m2 = new UtilDateModel();
+		m2 = new UtilDateModel();
 		m2.setValue(new Date());
 		JDatePanelImpl datePanel2 = new JDatePanelImpl(m2);
 		dataZamrozenia = new JmDatePickerImpl(datePanel2);
@@ -199,7 +207,7 @@ public class Tdocs extends JPanel {
 		gbc.gridy = 5;
 		panelDocs.add(dataZamrozenia, gbc);
 
-		UtilDateModel m3 = new UtilDateModel();
+		m3 = new UtilDateModel();
 		m3.setValue(new Date());
 		JDatePanelImpl datePanel3 = new JDatePanelImpl(m3);
 		dataProdukcji = new JmDatePickerImpl(datePanel3);
@@ -288,27 +296,68 @@ public class Tdocs extends JPanel {
 		String querry = Utils.getSqlValuesStringFromList(values, "t_doc_s", columns);
 		System.out.println("size v=" + values.size() + " size col=" + columns.size());
 		model.executeUpdate(querry);
-		save2Btn.setText("UPDATE");
+
+		idToUpdate = Utils.getFirstRecordFromRS(model.executeQuerry("SELECT id FROM t_doc_s WHERE id = (SELECT MAX(id) FROM t_doc_s);"));
 
 	}
 
-	private void updateDocs() {
+	public void setIdToUpdate(String idToUpdate) {
+		this.idToUpdate = idToUpdate;
+	}
+
+	public void setBtn(String name) {
+		save2Btn.setText(name);
+	}
+
+	public void enterUpdateState() {
+		setBtn("UPDATE");
+		savedDocs = true;
+	}
+
+	// private void updateDocs() {
+	//
+	// StringBuilder sb = new StringBuilder("");
+	// sb.append("update t_doc_s set ");
+	// String id = Utils.getFirstRecordFromRS(model.executeQuerry("SELECT id
+	// FROM t_doc_s WHERE id = (SELECT MAX(id) FROM t_doc_s);"));
+	//
+	// Component[] components = panelDocs.getComponents();
+	// int i = 1;
+	// for (Component c : components) {
+	// if (c instanceof Access) {
+	// if (i != 1)
+	// sb.append(",");
+	// sb.append(c.getName());
+	// sb.append("='");
+	// sb.append(((Access) c).getOutput());
+	// sb.append("'");
+	// i++;
+	// }
+	// }
+	//
+	// sb.append("where id=" + id);
+	// model.executeUpdate(sb.toString());
+	// }
+
+	private void updateDocs(String t_doc_id) {
 
 		StringBuilder sb = new StringBuilder("");
 		sb.append("update t_doc_s set ");
-		String id = Utils.getFirstRecordFromRS(model.executeQuerry("SELECT id FROM t_doc_s WHERE id = (SELECT MAX(id) FROM t_doc_s);"));
+		String id = t_doc_id;
 
 		Component[] components = panelDocs.getComponents();
 		int i = 1;
 		for (Component c : components) {
 			if (c instanceof Access) {
-				if (i != 1)
-					sb.append(",");
-				sb.append(c.getName());
-				sb.append("='");
-				sb.append(((Access) c).getOutput());
-				sb.append("'");
-				i++;
+				if (((Access) c).isAccessable()) {
+					if (i != 1)
+						sb.append(",");
+					sb.append(c.getName());
+					sb.append("='");
+					sb.append(((Access) c).getOutput());
+					sb.append("'");
+					i++;
+				}
 			}
 		}
 
@@ -375,4 +424,62 @@ public class Tdocs extends JPanel {
 		}
 	}
 
+	public void clearComponents() {
+		Component[] components = panelDocs.getComponents();
+
+		for (Component c : components) {
+			if (c instanceof Access) {
+				((Access) c).clear();
+			}
+		}
+	}
+
+	public void writeTdocs(int rowId) {
+		ResultSet rs = model.executeQuerry("select * from t_doc_s where id = '" + rowId + "';");
+		ResultSet rs1 = model.executeQuerry("select Towar from v_towar_show where id_tow = (select doc_s_nazwa_tow_id from t_doc_s where id = '" + rowId + "');");
+		ResultSet rs2 = model.executeQuerry("select magazyn from v_magazyn where id_ = (select doc_s_magazyn_id from t_doc_s where id = '" + rowId + "');");
+		Utils.printResultSet(rs1);
+
+		this.enablePanelDocs();
+
+		try {
+			while (rs.next()) {
+				nrPartiiWew.setText(rs.getString(nrPartiiWew.getName()));
+				nrPartiiZew.setText(rs.getString(nrPartiiZew.getName()));
+				wagaNetto.setText(rs.getString(wagaNetto.getName()));
+				wagaBrutto.setText(rs.getString(wagaBrutto.getName()));
+				wagaRyby.setText(rs.getString(wagaRyby.getName()));
+				kod1.setText(rs.getString(kod1.getName()));
+				kod2.setText(rs.getString(kod2.getName()));
+				iloscSzt.setText(rs.getString(iloscSzt.getName()));
+
+				String[] date = rs.getString("doc_s_data_polowu").split("-");
+				int y = Integer.valueOf(date[0]);
+				int mm = Integer.valueOf(date[1]) - 1;
+				int d = Integer.valueOf(date[2]);
+				m.setDate(y, mm, d);
+				date = rs.getString("doc_s_data_zamrozenia").split("-");
+				y = Integer.valueOf(date[0]);
+				mm = Integer.valueOf(date[1]) - 1;
+				d = Integer.valueOf(date[2]);
+				m2.setDate(y, mm, d);
+				date = rs.getString("doc_s_data_produkcji").split("-");
+				y = Integer.valueOf(date[0]);
+				mm = Integer.valueOf(date[1]) - 1;
+				d = Integer.valueOf(date[2]);
+				m3.setDate(y, mm, d);
+
+				nazwaTowaru.setSelectedItem(Utils.getFirstRecordFromRS(rs1));
+				magazyn.setSelectedItem(Utils.getFirstRecordFromRS(rs2));
+
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
+	public void setNewBtnEnabled(boolean b) {
+		newBtn.setEnabled(false);
+	}
 }

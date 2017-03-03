@@ -198,6 +198,7 @@ public class Tdoc extends JPanel{
 						generateNrdoc();
 						saveDoc();
 						document.enablePanelDocs();
+						document.clearTdocs();
 						savedDoc = true;
 					} else
 						updateDoc();
@@ -363,6 +364,8 @@ public class Tdoc extends JPanel{
 				((Access) c).clear();
 			}
 		}
+		
+		textNrDoc.setText("");
 	}
 
 	protected boolean inputValidated() {

@@ -12,6 +12,8 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumnModel;
 import javax.swing.text.DefaultCaret;
 
+import com.itextpdf.text.pdf.qrcode.Mode;
+
 import Model.Logger;
 import Model.Model;
 import Model.Utils;
@@ -87,10 +89,11 @@ public class Document extends JFrame {
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
-		contentPane.setLayout(new BorderLayout(0, 15));
+		contentPane.setLayout(new BorderLayout(10, 15));
 
-		tableModel = Utils.getTableModelFromRS(model.executeQuerry("select Towar,tow_waga_netto,tow_waga_ryby,tow_waga_brutto from v_towar_show"));
-		table = new Ttable(tableModel);
+		tableModel = Utils.getTableModelFromRS(model.executeQuerry("select Towar,doc_s_waga_netto_op,doc_s_waga_ryby,doc_s_waga_brutto,doc_s_ilosc_szt_op from v_doc_s"));
+		List<String> ids = Utils.getNthColumnRecordsFrom(model.executeQuerry("select id from v_doc_s"), 1);
+		table = new Ttable(this, tableModel, ids);
 		tdoc = new Tdoc(this, model);
 		tdocs = new Tdocs(this, model);
 		contentPane.add(tdoc, BorderLayout.NORTH);
@@ -99,6 +102,14 @@ public class Document extends JFrame {
 
 		setVisible(true);
 
+	}
+
+	public void setBtnTdocs(String name) {
+		tdocs.setBtn(name);
+	}
+
+	public void writeTdocs(int rowId) {
+		tdocs.writeTdocs(rowId);
 	}
 
 	public void enablePanelDocs() {
@@ -111,6 +122,22 @@ public class Document extends JFrame {
 
 	public String getDocId() {
 		return tdoc.getT_doc_id();
+	}
+
+	public void setTdocsUpdate() {
+		tdocs.enterUpdateState();
+	}
+
+	public void setIdToUpdate(String id) {
+		tdocs.setIdToUpdate(id);
+	}
+
+	public void clearTdocs() {
+		tdocs.clearComponents();
+	}
+
+	public void turnOffNewBtn() {
+		tdocs.setNewBtnEnabled(false);
 	}
 
 }
@@ -178,10 +205,10 @@ class JmComboBox extends JComboBox implements Access {
 	}
 
 	public JmComboBox() {
-		this(false, null ,null);
+		this(false, null, null);
 	}
 
-	public JmComboBox(boolean isQuerry, Map<String,Integer> map,Model model) {
+	public JmComboBox(boolean isQuerry, Map<String, Integer> map, Model model) {
 		super();
 		this.isQuerry = isQuerry;
 		this.querry = querry;

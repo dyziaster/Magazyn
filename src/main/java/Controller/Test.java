@@ -4,6 +4,9 @@ import java.awt.EventQueue;
 import java.sql.SQLException;
 
 import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
+import javax.swing.UIManager.LookAndFeelInfo;
+import javax.swing.UnsupportedLookAndFeelException;
 
 import FrontEnd.App;
 import Model.Model;
@@ -39,9 +42,31 @@ public class Test {
 	// jak sql pusty to wpisac 1 do nr doc -- done
 	
 	public static void createGui() throws ClassNotFoundException, SQLException{
+
+		lookandfeel();
 		Model m = new Model();
 		App app = new App();
 		new Controller(m,app);
 		
+	}
+	
+	private static void lookandfeel(){
+		
+		try {
+		    for (LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
+		        if ("Nimbus".equals(info.getName())) {
+		            UIManager.setLookAndFeel(info.getClassName());
+		            break;
+		        }
+		    }
+		} catch (UnsupportedLookAndFeelException e) {
+		    // handle exception
+		} catch (ClassNotFoundException e) {
+		    // handle exception
+		} catch (InstantiationException e) {
+		    // handle exception
+		} catch (IllegalAccessException e) {
+		    // handle exception
+		}
 	}
 }
