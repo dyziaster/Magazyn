@@ -94,7 +94,8 @@ public class Document extends JFrame {
 		contentPane.setLayout(new BorderLayout(10, 15));
 
 		tableModel = Utils.getTableModelFromRS(model.executeQuerry("select Towar,doc_s_waga_netto_op,doc_s_waga_ryby,doc_s_waga_brutto,doc_s_ilosc_szt_op from v_doc_s"));
-		List<String> ids = Utils.getNthColumnRecordsFrom(model.executeQuerry("select id from v_doc_s"), 1);
+		List<String> ids = Utils.getNthColumnRecordsFrom(model.executeQuerry("select id,Towar from v_doc_s"), 1);
+		Utils.printResultSet(model.executeQuerry("select id,Towar from v_doc_s")); 
 		table = new Ttable(this,tableModel, ids);
 		tdoc = new Tdoc(this, model);
 		tdocs = new Tdocs(this, model);

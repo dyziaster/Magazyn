@@ -17,19 +17,11 @@ import java.util.Map;
 
 import javax.swing.JButton;
 import javax.swing.JComboBox;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JTable;
-import javax.swing.JTextField;
-import javax.swing.table.TableColumnModel;
-
-import com.mysql.cj.api.x.Table;
 
 import Model.Logger;
 import Model.Model;
 import Model.Utils;
-import javafx.scene.control.DatePicker;
 import net.sourceforge.jdatepicker.impl.JDatePanelImpl;
 import net.sourceforge.jdatepicker.impl.JDatePickerImpl;
 import net.sourceforge.jdatepicker.impl.UtilDateModel;
@@ -161,8 +153,10 @@ public class Tdocs extends JPanel {
 						saveDocs(document.getDocId());
 						refreshTable();
 						enterUpdateState();
-					} else
+					} else {
 						updateDocs(idToUpdate);
+						refreshTable();
+					}
 				}
 			}
 		});
@@ -311,31 +305,6 @@ public class Tdocs extends JPanel {
 		setBtn("UPDATE");
 		savedDocs = true;
 	}
-
-	// private void updateDocs() {
-	//
-	// StringBuilder sb = new StringBuilder("");
-	// sb.append("update t_doc_s set ");
-	// String id = Utils.getFirstRecordFromRS(model.executeQuerry("SELECT id
-	// FROM t_doc_s WHERE id = (SELECT MAX(id) FROM t_doc_s);"));
-	//
-	// Component[] components = panelDocs.getComponents();
-	// int i = 1;
-	// for (Component c : components) {
-	// if (c instanceof Access) {
-	// if (i != 1)
-	// sb.append(",");
-	// sb.append(c.getName());
-	// sb.append("='");
-	// sb.append(((Access) c).getOutput());
-	// sb.append("'");
-	// i++;
-	// }
-	// }
-	//
-	// sb.append("where id=" + id);
-	// model.executeUpdate(sb.toString());
-	// }
 
 	private void updateDocs(String t_doc_id) {
 

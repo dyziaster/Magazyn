@@ -41,6 +41,8 @@ public class Test {
 	//nr-enable false -- done
 	// jak sql pusty to wpisac 1 do nr doc -- done
 	
+	// select id from vdocs - nie dziala poprawnie
+	
 	public static void createGui() throws ClassNotFoundException, SQLException{
 
 		lookandfeel();

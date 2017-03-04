@@ -13,8 +13,8 @@ import javax.swing.ListSelectionModel;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumnModel;
 
-public class Ttable extends JPanel implements ActionListener{
-	
+public class Ttable extends JPanel implements ActionListener {
+
 	private DefaultTableModel dtm;
 	private JTable table;
 	private TableColumnModel tcm;
@@ -23,45 +23,42 @@ public class Ttable extends JPanel implements ActionListener{
 	private JButton editBtn;
 	private Document document;
 	private List<String> ids;
-	
-	public Ttable(){
-		this(null,null,null);
-		
+	private int selectedRow;
+
+	public Ttable() {
+		this(null, null, null);
+
 	}
 
-	public Ttable(Document document, DefaultTableModel tableModel, List<String> ids){
+	public Ttable(Document document, DefaultTableModel tableModel, List<String> ids) {
 
 		panel = this;
 		panel.setLayout(new BorderLayout());
 		this.document = document;
 		this.ids = ids;
-		
-		
+
 		table = new JTable();
-		setTableData(table,tableModel);
+		setTableData(table, tableModel);
 		tcm = table.getColumnModel();
-		
+
 		table.setRowSelectionAllowed(true);
 		table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-//		table.setColumnSelectionAllowed(true);
-//		table.setCellSelectionEnabled(true);
-		
+		// table.setColumnSelectionAllowed(true);
+		// table.setCellSelectionEnabled(true);
+
 		table.setFillsViewportHeight(true);
 		table.getTableHeader().setReorderingAllowed(false);
 		scrollTable = new JScrollPane(table);
-		
-		
-		
+
 		editBtn = new JButton("edit");
 		editBtn.addActionListener(this);
 		editBtn.setActionCommand("edit");
 
-		
-		panel.add(scrollTable,BorderLayout.CENTER);
-		panel.add(editBtn,BorderLayout.PAGE_END);
+		panel.add(scrollTable, BorderLayout.CENTER);
+		panel.add(editBtn, BorderLayout.PAGE_END);
 	}
-	
-	public void setTableData(JTable table,DefaultTableModel model) {
+
+	public void setTableData(JTable table, DefaultTableModel model) {
 
 		TableColumnModel columnModel = table.getColumnModel();
 		table.setModel(model);
@@ -82,8 +79,6 @@ public class Ttable extends JPanel implements ActionListener{
 
 		((DefaultTableModel) table.getModel()).fireTableDataChanged();
 	}
-	
-
 
 	public String getValueAt(int row, int column) {
 		Object value = table.getModel().getValueAt(row, column);
@@ -95,18 +90,27 @@ public class Ttable extends JPanel implements ActionListener{
 
 	@Override
 	public void actionPerformed(ActionEvent arg0) {
-		String id = ids.get(table.getSelectedRow());
+		selectedRow = table.getSelectedRow();
+		String id = ids.get(selectedRow);
 		document.enablePanelDocs();
 		document.writeTdocs(Integer.valueOf(id));
 		document.setIdToUpdate(id);
 		document.setTdocsUpdate();
 		document.turnOffNewBtn();
-		
+
 	}
 
 	public void refreshTableModel(DefaultTableModel tableModel) {
-		table.setModel(tableModel);
+		setTableData(table, tableModel);
 		tableModel.fireTableDataChanged();
+		setCursorPos(selectedRow);
+	}
+	
+	public void setCursorPos(int x){
+		if(x<0)
+			return;
+		else
+			table.setRowSelectionInterval(x, x);
 	}
 
 }
