@@ -201,7 +201,7 @@ public class Utils {
 			Logger.e(Logger.getMethodName(), e.getMessage());
 		}
 		System.out.println(columnNames);
-		return new DefaultTableModel(data, columnNames);
+		return new MyTModel(data, columnNames);
 
 	}
 

@@ -24,9 +24,12 @@ import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.table.TableColumnModel;
 
+import com.mysql.cj.api.x.Table;
+
 import Model.Logger;
 import Model.Model;
 import Model.Utils;
+import javafx.scene.control.DatePicker;
 import net.sourceforge.jdatepicker.impl.JDatePanelImpl;
 import net.sourceforge.jdatepicker.impl.JDatePickerImpl;
 import net.sourceforge.jdatepicker.impl.UtilDateModel;
@@ -156,13 +159,14 @@ public class Tdocs extends JPanel {
 				if (inputValidated()) {
 					if (savedDocs == false) {
 						saveDocs(document.getDocId());
+						refreshTable();
 						enterUpdateState();
 					} else
 						updateDocs(idToUpdate);
 				}
 			}
 		});
-		
+
 		newBtn = new JButton("NEW");
 		gbc_button.insets = new Insets(5, 0, 5, 0);
 		gbc_button.fill = GridBagConstraints.HORIZONTAL;
@@ -174,17 +178,11 @@ public class Tdocs extends JPanel {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				if (inputValidated()) {
-					
+
 					savedDocs = false;
 					clearComponents();
 					setBtn("SAVE");
-					
-					
-//					if (savedDocs == false) {
-//						saveDocs(document.getDocId());
-//						enterUpdateState();
-//					} else
-//						updateDocs(idToUpdate);
+
 				}
 			}
 		});
@@ -248,11 +246,6 @@ public class Tdocs extends JPanel {
 		disablePanelDocs();
 	}
 
-	private boolean inputValidated() {
-		// TODO Auto-generated method stub
-		return true;
-	}
-
 	public void disablePanelDocs() {
 		for (Component c : panelDocs.getComponents()) {
 			if (c instanceof JDatePickerImpl)
@@ -299,6 +292,11 @@ public class Tdocs extends JPanel {
 
 		idToUpdate = Utils.getFirstRecordFromRS(model.executeQuerry("SELECT id FROM t_doc_s WHERE id = (SELECT MAX(id) FROM t_doc_s);"));
 
+	}
+
+	private void refreshTable() {
+
+		document.refreshTable();
 	}
 
 	public void setIdToUpdate(String idToUpdate) {
@@ -434,6 +432,22 @@ public class Tdocs extends JPanel {
 		}
 	}
 
+	private boolean inputValidated() {
+		Component[] components = panelDocs.getComponents();
+
+		for (Component c : components) {
+			if (c instanceof Access) {
+				if (((Access) c).isAccessable()) {
+					if (((Access) c).getOutput().equals("")) {
+						Logger.e(Logger.getMethodName(), c.getName() + " is empty");
+						return false;
+					}
+				}
+			}
+		}
+		return true;
+	}
+
 	public void writeTdocs(int rowId) {
 		ResultSet rs = model.executeQuerry("select * from t_doc_s where id = '" + rowId + "';");
 		ResultSet rs1 = model.executeQuerry("select Towar from v_towar_show where id_tow = (select doc_s_nazwa_tow_id from t_doc_s where id = '" + rowId + "');");
@@ -482,4 +496,5 @@ public class Tdocs extends JPanel {
 	public void setNewBtnEnabled(boolean b) {
 		newBtn.setEnabled(false);
 	}
+
 }

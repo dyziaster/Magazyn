@@ -56,6 +56,7 @@ public class Document extends JFrame {
 	private Tdoc tdoc;
 	private Ttable table;
 	private DefaultTableModel tableModel;
+	private Model model;
 
 	/**
 	 * Launch the application.
@@ -83,6 +84,7 @@ public class Document extends JFrame {
 
 	public Document(App app, Model model) {
 
+		this.model = model;
 		this.setTitle("Document");
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		setBounds(100, 100, 738, 474);
@@ -93,7 +95,7 @@ public class Document extends JFrame {
 
 		tableModel = Utils.getTableModelFromRS(model.executeQuerry("select Towar,doc_s_waga_netto_op,doc_s_waga_ryby,doc_s_waga_brutto,doc_s_ilosc_szt_op from v_doc_s"));
 		List<String> ids = Utils.getNthColumnRecordsFrom(model.executeQuerry("select id from v_doc_s"), 1);
-		table = new Ttable(this, tableModel, ids);
+		table = new Ttable(this,tableModel, ids);
 		tdoc = new Tdoc(this, model);
 		tdocs = new Tdocs(this, model);
 		contentPane.add(tdoc, BorderLayout.NORTH);
@@ -138,6 +140,11 @@ public class Document extends JFrame {
 
 	public void turnOffNewBtn() {
 		tdocs.setNewBtnEnabled(false);
+	}
+
+	public void refreshTable() {
+		tableModel = Utils.getTableModelFromRS(model.executeQuerry("select Towar,doc_s_waga_netto_op,doc_s_waga_ryby,doc_s_waga_brutto,doc_s_ilosc_szt_op from v_doc_s"));
+		table.refreshTableModel(tableModel);
 	}
 
 }
@@ -308,3 +315,4 @@ class JmLabel extends JLabel implements Access {
 	}
 
 }
+

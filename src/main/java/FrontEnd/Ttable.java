@@ -42,12 +42,12 @@ public class Ttable extends JPanel implements ActionListener{
 		tcm = table.getColumnModel();
 		
 		table.setRowSelectionAllowed(true);
-		table.setColumnSelectionAllowed(true);
-		table.setCellSelectionEnabled(true);
+		table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+//		table.setColumnSelectionAllowed(true);
+//		table.setCellSelectionEnabled(true);
 		
-		//table.setFillsViewportHeight(true);
+		table.setFillsViewportHeight(true);
 		table.getTableHeader().setReorderingAllowed(false);
-//		scrollTable.setViewportView(table);
 		scrollTable = new JScrollPane(table);
 		
 		
@@ -102,6 +102,11 @@ public class Ttable extends JPanel implements ActionListener{
 		document.setTdocsUpdate();
 		document.turnOffNewBtn();
 		
+	}
+
+	public void refreshTableModel(DefaultTableModel tableModel) {
+		table.setModel(tableModel);
+		tableModel.fireTableDataChanged();
 	}
 
 }

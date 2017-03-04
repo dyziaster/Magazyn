@@ -2,9 +2,6 @@ package FrontEnd;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
-import java.awt.LayoutManager;
-import java.awt.LayoutManager2;
 
 import javax.swing.JFrame;
 import javax.swing.JList;
@@ -45,28 +42,11 @@ public class TableDemo {
 
 		DefaultTableModel dtm = new DefaultTableModel(rowData, columnNames);
 		JTable table = new JTable(dtm);
-		table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
 
-		for (int i = 0; i < 3; i++) {
-			column = table.getColumnModel().getColumn(i);
-			if (i == 2) {
-				column.setPreferredWidth(250); // third column is bigger
-			} else {
-				column.setPreferredWidth(150);
-			}
-		}
 		JScrollPane scrollPane = new JScrollPane(table);
 
 		JPanel mainPanel = new JPanel();
-		BorderLayout mgr = new BorderLayout();
-		mgr.setVgap(15);
-		mainPanel.setLayout(mgr);
-		mainPanel.add(listPanel, BorderLayout.WEST);
 		mainPanel.add(scrollPane, BorderLayout.CENTER);
-		JTextArea jta = new JTextArea();
-		jta.setPreferredSize(new Dimension(0, 60));
-		JScrollPane scrollText = new JScrollPane(jta);
-		mainPanel.add(scrollText, BorderLayout.PAGE_END);
 
 		frame.setContentPane(mainPanel);
 

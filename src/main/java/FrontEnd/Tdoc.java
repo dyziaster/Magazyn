@@ -368,7 +368,7 @@ public class Tdoc extends JPanel{
 		textNrDoc.setText("");
 	}
 
-	protected boolean inputValidated() {
+	private boolean inputValidated() {
 		Component[] components = panel.getComponents();
 
 		for (Component c : components) {
