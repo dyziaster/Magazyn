@@ -31,7 +31,7 @@ import Model.Utils;
 import net.sourceforge.jdatepicker.impl.JDatePanelImpl;
 import net.sourceforge.jdatepicker.impl.UtilDateModel;
 
-public class Tdoc extends JPanel{
+public class Tdoc extends JPanel {
 
 	/**
 	 * 
@@ -62,17 +62,14 @@ public class Tdoc extends JPanel{
 	private Map<String, Integer> mapProducent;
 	private Map<String, Integer> mapCfg;
 	private ResultSet rs;
-	
-	
-	
+	private JButton saveDocBtn;
+
 	public String getT_doc_id() {
 		return t_doc_id;
 	}
 
+	public Tdoc(final Document document, final Model model) {
 
-
-	public Tdoc( final Document document, Model model) {
-		
 		this.model = model;
 		this.document = document;
 		panel = this;
@@ -86,12 +83,11 @@ public class Tdoc extends JPanel{
 		panel.setLayout(gbl_panel);
 
 		this.addLabels();
-		
+
 		UtilDateModel m = new UtilDateModel();
 		m.setValue(new Date());
 		JDatePanelImpl datePanel = new JDatePanelImpl(m);
 
-		
 		datePickerDostawa = new JmDatePickerImpl(datePanel);
 
 		UtilDateModel m2 = new UtilDateModel();
@@ -123,7 +119,6 @@ public class Tdoc extends JPanel{
 		panel.add(textNrSamochod, gbc_textNrSamochod);
 		textNrSamochod.setColumns(10);
 
-
 		textField_5 = new JTextField();
 		GridBagConstraints gbc_textField_5 = new GridBagConstraints();
 		gbc_textField_5.insets = new Insets(0, 0, 5, 5);
@@ -132,7 +127,6 @@ public class Tdoc extends JPanel{
 		gbc_textField_5.gridy = 2;
 		panel.add(datePickerDostawa, gbc_textField_5);
 		textField_5.setColumns(10);
-
 
 		textUwagi = new JmTextField();
 		GridBagConstraints gbc_textUwagi = new GridBagConstraints();
@@ -143,10 +137,9 @@ public class Tdoc extends JPanel{
 		panel.add(textUwagi, gbc_textUwagi);
 		textUwagi.setColumns(10);
 
-
 		rs = model.executeQuerry("select * from v_konrahent");
 		mapProducent = Utils.getIdNameMapFrom(rs);
-		btnProducent = new JmComboBox(true, mapProducent,model);
+		btnProducent = new JmComboBox(true, mapProducent, model);
 		GridBagConstraints gbc_btnProducent = new GridBagConstraints();
 		gbc_btnProducent.insets = new Insets(0, 0, 0, 5);
 		gbc_btnProducent.fill = GridBagConstraints.HORIZONTAL;
@@ -154,7 +147,7 @@ public class Tdoc extends JPanel{
 		gbc_btnProducent.gridy = 3;
 		panel.add(btnProducent, gbc_btnProducent);
 
-		btnDostawca = new JmComboBox(true, mapProducent,model);
+		btnDostawca = new JmComboBox(true, mapProducent, model);
 		GridBagConstraints gbc_btnDostawca = new GridBagConstraints();
 		gbc_btnDostawca.insets = new Insets(0, 0, 0, 5);
 		gbc_btnDostawca.fill = GridBagConstraints.HORIZONTAL;
@@ -162,17 +155,16 @@ public class Tdoc extends JPanel{
 		gbc_btnDostawca.gridy = 3;
 		panel.add(btnDostawca, gbc_btnDostawca);
 
-
-		btnWlasciciel = new JmComboBox(true, mapProducent,model);
+		btnWlasciciel = new JmComboBox(true, mapProducent, model);
 		GridBagConstraints gbc_btnWlasciciel = new GridBagConstraints();
 		gbc_btnWlasciciel.fill = GridBagConstraints.HORIZONTAL;
 		gbc_btnWlasciciel.gridx = 5;
 		gbc_btnWlasciciel.gridy = 3;
 		panel.add(btnWlasciciel, gbc_btnWlasciciel);
 
-		rs = model.executeQuerry("select * from t_cfg_doc;");
+		rs = model.executeQuerry("select * from v_cfg_doc_pz;");
 		mapCfg = Utils.getIdNameMapFrom(rs);
-		btnCfg = new JmComboBox(true,mapCfg,model);
+		btnCfg = new JmComboBox(true, mapCfg, model);
 		GridBagConstraints gbc_btnCfg = new GridBagConstraints();
 		gbc_btnCfg.insets = new Insets(0, 0, 5, 5);
 		gbc_btnCfg.fill = GridBagConstraints.HORIZONTAL;
@@ -181,12 +173,11 @@ public class Tdoc extends JPanel{
 		Utils.addToComboBox(btnCfg, mapCfg.keySet());
 		panel.add(btnCfg, gbc_btnCfg);
 
-
 		saveBtn = new JButton("save");
 		GridBagConstraints gbc_button = new GridBagConstraints();
 		gbc_button.insets = new Insets(5, 0, 5, 0);
 		gbc_button.fill = GridBagConstraints.HORIZONTAL;
-		gbc_button.gridx = 4;
+		gbc_button.gridx = 2;
 		gbc_button.gridy = 4;
 		panel.add(saveBtn, gbc_button);
 		saveBtn.addActionListener(new ActionListener() {
@@ -195,10 +186,14 @@ public class Tdoc extends JPanel{
 			public void actionPerformed(ActionEvent e) {
 				if (inputValidated()) {
 					if (savedDoc == false) {
-						generateNrdoc();
 						saveDoc();
-						document.enablePanelDocs();
+						t_doc_id = getDocID();
+						document.enablePanel(2);
+						document.enablePanel(3);
 						document.clearTdocs();
+						t_doc_id = Utils.getFirstRecordFromRS(model.executeQuerry("SELECT id_doc FROM t_doc WHERE id_doc = (SELECT MAX(id_doc) FROM t_doc);"));
+						btnCfg.setEnabled(false);
+						saveBtn.setText("UPDATE");
 						savedDoc = true;
 					} else
 						updateDoc();
@@ -206,16 +201,35 @@ public class Tdoc extends JPanel{
 			}
 		});
 
+		saveDocBtn = new JButton("save document");
+		gbc_button.insets = new Insets(5, 0, 5, 0);
+		gbc_button.fill = GridBagConstraints.HORIZONTAL;
+		gbc_button.gridx = 5;
+		gbc_button.gridy = 4;
+		panel.add(saveDocBtn, gbc_button);
+		saveDocBtn.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if (savedDoc == true)
+					model.executeUpdate("update t_doc set nr_doc ='" + generateNrdoc() + "' where id_doc='" + getT_doc_id() + "';");
+			}
+		});
+
 		newBtn = new JButton("New");
-		gbc_button.gridx = 2;
+		gbc_button.gridx = 0;
 		panel.add(newBtn, gbc_button);
 		newBtn.addActionListener(new ActionListener() {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				newDoc();
-				document.disablePanelDocs();
-				clearComponents();
+				document.clearTable();
+				document.disablePanel(2);
+				document.setTdocsNew();
+				document.disablePanel(3);
+				btnCfg.clear();
+				document.clearTdocs();
+				// clearComponents();
 				savedDoc = false;
 			}
 		});
@@ -224,7 +238,7 @@ public class Tdoc extends JPanel{
 		panel_2.setLayout(new BorderLayout());
 		JLabel lblNotes = new JLabel("Notes");
 		panel_2.add(lblNotes, BorderLayout.NORTH);
-		//panel_2.add(scrollTable, BorderLayout.CENTER);
+		// panel_2.add(scrollTable, BorderLayout.CENTER);
 		JPanel panel_3 = new JPanel();
 		sum1 = new JLabel("");
 		sum2 = new JLabel("");
@@ -246,8 +260,6 @@ public class Tdoc extends JPanel{
 		datePickerDostawa.setName("doc_data_dostawy");
 
 	}
-
-	
 
 	private void addLabels() {
 
@@ -307,8 +319,6 @@ public class Tdoc extends JPanel{
 		gbc_lblNewLabel_8.gridy = 1;
 		panel.add(lblNewLabel_8, gbc_lblNewLabel_8);
 
-
-
 		JLabel lblNewLabel_5 = new JLabel("Data dostawy");
 		GridBagConstraints gbc_lblNewLabel_5 = new GridBagConstraints();
 		gbc_lblNewLabel_5.anchor = GridBagConstraints.EAST;
@@ -316,7 +326,6 @@ public class Tdoc extends JPanel{
 		gbc_lblNewLabel_5.gridx = 2;
 		gbc_lblNewLabel_5.gridy = 2;
 		panel.add(lblNewLabel_5, gbc_lblNewLabel_5);
-
 
 		JLabel lblNewLabel_9 = new JLabel("Uwagi");
 		GridBagConstraints gbc_lblNewLabel_9 = new GridBagConstraints();
@@ -334,7 +343,6 @@ public class Tdoc extends JPanel{
 		gbc_lblNewLabel_1.gridy = 3;
 		panel.add(lblNewLabel_1, gbc_lblNewLabel_1);
 
-		
 		JLabel lblNewLabel_6 = new JLabel("Dostawca");
 		GridBagConstraints gbc_lblNewLabel_6 = new GridBagConstraints();
 		gbc_lblNewLabel_6.anchor = GridBagConstraints.EAST;
@@ -351,10 +359,7 @@ public class Tdoc extends JPanel{
 		gbc_lblNewLabel_10.gridy = 3;
 		panel.add(lblNewLabel_10, gbc_lblNewLabel_10);
 
-
 	}
-
-
 
 	private void clearComponents() {
 		Component[] components = panel.getComponents();
@@ -364,7 +369,7 @@ public class Tdoc extends JPanel{
 				((Access) c).clear();
 			}
 		}
-		
+
 		textNrDoc.setText("");
 	}
 
@@ -382,21 +387,24 @@ public class Tdoc extends JPanel{
 		return true;
 	}
 
-//	private void generateTableView() {
-//
-//		String id = Utils.getFirstRecordFromRS(model.executeQuerry("SELECT id_doc FROM t_doc WHERE id_doc = (SELECT MAX(id_doc) FROM t_doc);"));
-//		String ID = textNrDoc.getText();
-//		ResultSet rs = model.executeQuerry("select * from v_doc_s t1 where t1.doc_id=" + id + ";");
-//		DefaultTableModel dtm = Utils.getTableModelFromRS(rs, model);
-//		this.setTableData(dtm);
-//		rs = model.executeQuerry("select sum(t1.doc_s_ilosc_szt_op) from v_doc_s t1 where t1.doc_id=" + id + " and t1.doc_s_delete=0");
-//		sum1.setText(Utils.getFirstRecordFromRS(rs));
-//		rs = model.executeQuerry("select sum(t1.doc_s_ilosc_szt_op * t1.doc_s_waga_netto_op) from v_doc_s t1 where t1.doc_id=" + id + " and t1.doc_s_delete=0");
-//		sum2.setText(Utils.getFirstRecordFromRS(rs));
-//
-//	}
-
-
+	// private void generateTableView() {
+	//
+	// String id = Utils.getFirstRecordFromRS(model.executeQuerry("SELECT id_doc
+	// FROM t_doc WHERE id_doc = (SELECT MAX(id_doc) FROM t_doc);"));
+	// String ID = textNrDoc.getText();
+	// ResultSet rs = model.executeQuerry("select * from v_doc_s t1 where
+	// t1.doc_id=" + id + ";");
+	// DefaultTableModel dtm = Utils.getTableModelFromRS(rs, model);
+	// this.setTableData(dtm);
+	// rs = model.executeQuerry("select sum(t1.doc_s_ilosc_szt_op) from v_doc_s
+	// t1 where t1.doc_id=" + id + " and t1.doc_s_delete=0");
+	// sum1.setText(Utils.getFirstRecordFromRS(rs));
+	// rs = model.executeQuerry("select sum(t1.doc_s_ilosc_szt_op *
+	// t1.doc_s_waga_netto_op) from v_doc_s t1 where t1.doc_id=" + id + " and
+	// t1.doc_s_delete=0");
+	// sum2.setText(Utils.getFirstRecordFromRS(rs));
+	//
+	// }
 
 	private void close() {
 		// model.executeQuerry("grant insert,update on t_doc to PUBLIC");
@@ -407,9 +415,10 @@ public class Tdoc extends JPanel{
 
 		saveBtn.setText("Save");
 		btnCfg.setEnabled(true);
+		textNrDoc.setText("");
 	}
 
-	private void generateNrdoc() {
+	public int generateNrdoc() {
 
 		String id_cfg_doc = String.valueOf(mapCfg.get(btnCfg.getSelectedItem()));
 		String querry = "select v_doc_nr.nr_doc from v_doc_nr where v_doc_nr.doc_cfg_doc_id=" + id_cfg_doc + ";";
@@ -417,11 +426,15 @@ public class Tdoc extends JPanel{
 		try {
 			if (!rs.isBeforeFirst()) {
 				textNrDoc.setText("1");
+				return 1;
 			} else {
-				textNrDoc.setText(Utils.getFirstRecordFromRS(rs));
+				String nr = Utils.getFirstRecordFromRS(rs);
+				textNrDoc.setText(nr);
+				return Integer.valueOf(nr);
 			}
 		} catch (SQLException e) {
 			Logger.e(Logger.getMethodName(), e.getMessage());
+			return 0;
 		}
 
 	}
@@ -461,7 +474,8 @@ public class Tdoc extends JPanel{
 		nrKontener = textNrKontener.getOutput();
 		nrSamochod = textNrSamochod.getOutput();
 		uwagi = textUwagi.getOutput();
-		nrDoc = textNrDoc.getText();
+		// nrDoc = textNrDoc.getText();
+		nrDoc = "-1";
 		dataDoc = datePickerDoc.getOutput();
 		dataDostawy = datePickerDostawa.getOutput();
 
@@ -476,11 +490,11 @@ public class Tdoc extends JPanel{
 		String querry2 = Utils.getSqlValuesStringFromList(list, "t_doc", list2);
 
 		model.executeUpdate(querry2);
-		t_doc_id = Utils.getFirstRecordFromRS(model.executeQuerry("SELECT id_doc FROM t_doc WHERE id_doc = (SELECT MAX(id_doc) FROM t_doc);"));
-		// model.executeQuerry("revoke insert,update on t_doc from PUBLIC"); //
-		// RACE CONDITION <--------------------
-		btnCfg.setEnabled(false);
-		saveBtn.setText("UPDATE");
+
+	}
+
+	private String getDocID() {
+		return Utils.getFirstRecordFromRS(model.executeQuerry("SELECT id_doc FROM t_doc WHERE id_doc = (SELECT MAX(id_doc) FROM t_doc);"));
 	}
 
 	private void populateComboBoxes() {

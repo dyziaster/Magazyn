@@ -45,7 +45,7 @@ import javax.swing.JTable;
 import javax.swing.JComboBox;
 import java.awt.FlowLayout;
 
-public class Document extends JFrame {
+public class Document extends JFrame implements ActionListener {
 
 	/**
 	 * 
@@ -57,6 +57,7 @@ public class Document extends JFrame {
 	private Ttable table;
 	private DefaultTableModel tableModel;
 	private Model model;
+	private JButton saveBtn;
 
 	/**
 	 * Launch the application.
@@ -93,18 +94,53 @@ public class Document extends JFrame {
 		setContentPane(contentPane);
 		contentPane.setLayout(new BorderLayout(10, 15));
 
-		tableModel = Utils.getTableModelFromRS(model.executeQuerry("select Towar,doc_s_waga_netto_op,doc_s_waga_ryby,doc_s_waga_brutto,doc_s_ilosc_szt_op from v_doc_s"));
-		List<String> ids = Utils.getNthColumnRecordsFrom(model.executeQuerry("select id,Towar from v_doc_s"), 1);
-		Utils.printResultSet(model.executeQuerry("select id,Towar from v_doc_s")); 
-		table = new Ttable(this,tableModel, ids);
+		//tableModel = Utils.getTableModelFromRS(model.executeQuerry("select * from v_doc_view where doc_id ='"+xx+"';"));
+		//List<String> ids = Utils.getNthColumnRecordsFrom(model.executeQuerry("select id,Towar from v_doc_s"), 1);
+		//Utils.printResultSet(model.executeQuerry("select id,Towar from v_doc_s"));
+		table = new Ttable(this, null, null);
 		tdoc = new Tdoc(this, model);
 		tdocs = new Tdocs(this, model);
 		contentPane.add(tdoc, BorderLayout.NORTH);
 		contentPane.add(table, BorderLayout.CENTER);
 		contentPane.add(tdocs, BorderLayout.SOUTH);
-
+		
+		saveBtn = new JButton("save");
+		saveBtn.addActionListener(this);
+	//	contentPane.add(saveBtn, BorderLayout.AFTER_LINE_ENDS);
+		
 		setVisible(true);
 
+		disablePanel(2);
+		disablePanel(3);
+
+	}
+
+	public void enablePanel(int num) {
+		switch (num) {
+		case 1:
+			
+			break;
+		case 2:
+			table.enableTable();
+			break;
+		case 3:
+			tdocs.enablePanelDocs();
+			break;
+		}
+	}
+	
+	public void disablePanel(int num) {
+		switch (num) {
+		case 1:
+			
+			break;
+		case 2:
+			table.disableTable();
+			break;
+		case 3:
+			tdocs.disablePanelDocs();
+			break;
+		}
 	}
 
 	public void setBtnTdocs(String name) {
@@ -113,14 +149,6 @@ public class Document extends JFrame {
 
 	public void writeTdocs(int rowId) {
 		tdocs.writeTdocs(rowId);
-	}
-
-	public void enablePanelDocs() {
-		tdocs.enablePanelDocs();
-	}
-
-	public void disablePanelDocs() {
-		tdocs.disablePanelDocs();
 	}
 
 	public String getDocId() {
@@ -144,8 +172,21 @@ public class Document extends JFrame {
 	}
 
 	public void refreshTable() {
-		tableModel = Utils.getTableModelFromRS(model.executeQuerry("select Towar,doc_s_waga_netto_op,doc_s_waga_ryby,doc_s_waga_brutto,doc_s_ilosc_szt_op from v_doc_s"));
+		tableModel = Utils.getTableModelFromRS(model.executeQuerry("select * from v_doc_s where doc_id ='"+getDocId()+"';"));
 		table.refreshTableModel(tableModel);
+	}
+
+	@Override
+	public void actionPerformed(ActionEvent e) {
+		model.executeUpdate("update t_doc set nr_doc ='"+tdoc.generateNrdoc()+"' where id_doc='"+getDocId()+"';");
+	}
+
+	public void clearTable() {
+		table.clear();		
+	}
+
+	public void setTdocsNew() {
+tdocs.enterSaveState();		
 	}
 
 }
@@ -219,7 +260,7 @@ class JmComboBox extends JComboBox implements Access {
 	public JmComboBox(boolean isQuerry, Map<String, Integer> map, Model model) {
 		super();
 		this.isQuerry = isQuerry;
-		this.querry = querry;
+		this.isAccessable = isQuerry;
 		this.model = model;
 		this.map = map;
 	}
@@ -316,4 +357,3 @@ class JmLabel extends JLabel implements Access {
 	}
 
 }
-

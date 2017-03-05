@@ -237,7 +237,6 @@ public class Tdocs extends JPanel {
 		new JmLabel(panelDocs, "Nr partii wew", 0, 6);
 		new JmLabel(panelDocs, "data produkcji", 2, 6);
 
-		disablePanelDocs();
 	}
 
 	public void disablePanelDocs() {
@@ -282,6 +281,7 @@ public class Tdocs extends JPanel {
 		List<String> values = Arrays.asList(docId, delete, view, magId, partiaZew, partiaWew, towId, dataPolowu, dataZamrozenia, dataProdukcji, netto, waga, brutto, szt, kod1, kod2, uwag);
 		String querry = Utils.getSqlValuesStringFromList(values, "t_doc_s", columns);
 		System.out.println("size v=" + values.size() + " size col=" + columns.size());
+		System.out.println("columns : "+columns);
 		model.executeUpdate(querry);
 
 		idToUpdate = Utils.getFirstRecordFromRS(model.executeQuerry("SELECT id FROM t_doc_s WHERE id = (SELECT MAX(id) FROM t_doc_s);"));
@@ -302,8 +302,13 @@ public class Tdocs extends JPanel {
 	}
 
 	public void enterUpdateState() {
-		setBtn("UPDATE");
+		setBtn("Update");
 		savedDocs = true;
+	}
+	
+	public void enterSaveState() {
+		setBtn("Save");
+		savedDocs = false;
 	}
 
 	private void updateDocs(String t_doc_id) {

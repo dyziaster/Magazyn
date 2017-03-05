@@ -38,7 +38,8 @@ public class Ttable extends JPanel implements ActionListener {
 		this.ids = ids;
 
 		table = new JTable();
-		setTableData(table, tableModel);
+		if(tableModel!= null)
+			setTableData(table, tableModel);
 		tcm = table.getColumnModel();
 
 		table.setRowSelectionAllowed(true);
@@ -92,7 +93,7 @@ public class Ttable extends JPanel implements ActionListener {
 	public void actionPerformed(ActionEvent arg0) {
 		selectedRow = table.getSelectedRow();
 		String id = ids.get(selectedRow);
-		document.enablePanelDocs();
+		document.enablePanel(3);
 		document.writeTdocs(Integer.valueOf(id));
 		document.setIdToUpdate(id);
 		document.setTdocsUpdate();
@@ -103,7 +104,7 @@ public class Ttable extends JPanel implements ActionListener {
 	public void refreshTableModel(DefaultTableModel tableModel) {
 		setTableData(table, tableModel);
 		tableModel.fireTableDataChanged();
-		setCursorPos(selectedRow);
+		//setCursorPos(selectedRow);
 	}
 	
 	public void setCursorPos(int x){
@@ -111,6 +112,20 @@ public class Ttable extends JPanel implements ActionListener {
 			return;
 		else
 			table.setRowSelectionInterval(x, x);
+	}
+	
+	public void disableTable(){
+		editBtn.setEnabled(false);
+		table.setEnabled(false);
+	}
+	
+	public void enableTable(){
+		editBtn.setEnabled(true);
+		table.setEnabled(true);
+	}
+
+	public void clear() {
+		table.setModel(new DefaultTableModel());
 	}
 
 }

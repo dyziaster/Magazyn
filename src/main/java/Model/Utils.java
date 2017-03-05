@@ -6,6 +6,7 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
@@ -45,11 +46,13 @@ public class Utils {
 	public static final String COMMAND_NEWDOC = "newdoc";
 
 	public static void printResultSet(ResultSet resultSet) {
-
-		if (resultSet == null)
-			Logger.e(Logger.getMethodName(), " cannot print empty resultset");
-		ResultSetMetaData rsmd;
+		
 		try {
+			if (!resultSet.isBeforeFirst()){
+				Logger.e(Logger.getMethodName(), " cannot print empty resultset");
+				return;
+			}
+			ResultSetMetaData rsmd;
 			rsmd = resultSet.getMetaData();
 			int columnsNumber = rsmd.getColumnCount();
 			while (resultSet.next()) {
@@ -115,7 +118,7 @@ public class Utils {
 	}
 
 	public static Map<String, Integer> getIdNameMapFrom(ResultSet resultSet) {
-		Map<String, Integer> map = new HashMap<>();
+		Map<String, Integer> map = new LinkedHashMap<>();
 		try {
 			ResultSetMetaData rsmd = resultSet.getMetaData();
 			// int columnsNumber = rsmd.getColumnCount();
