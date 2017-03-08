@@ -199,7 +199,7 @@ public class Utils {
 				data.add(vector);
 
 			}
-
+			rs.beforeFirst();
 		} catch (SQLException e) {
 			Logger.e(Logger.getMethodName(), e.getMessage());
 		}

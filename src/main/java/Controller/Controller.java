@@ -22,7 +22,7 @@ public class Controller {
 	private CustomListener textListener;
 	private BtnListener btnListener;
 	private TableMenuListener menuListener;
-	private HelpMenuListener helpMenuListener; 
+	private HelpMenuListener helpMenuListener;
 
 	public Controller() {
 		this(null);
@@ -55,28 +55,27 @@ public class Controller {
 	}
 
 	public void onStart() {
-		Logger.setJta((appFrame.getAppender()));
-		Logger.i("CONTROLLER.ONSTART .............................................");
 
-//		appFrame.buttonDisable(Utils.COMMAND_NEW);
-//		appFrame.buttonDisable(Utils.COMMAND_CANCEL);
-//		appFrame.buttonDisable(Utils.COMMAND_SAVE);
-//		appFrame.buttonDisable(Utils.COMMAND_EDIT);
-//		appFrame.buttonDisable(Utils.COMMAND_TEXT);
+		try {
+			Logger.setJta((appFrame.getAppender()));
+			Logger.i("CONTROLLER.ONSTART .............................................");
 
-		appFrame.setVisible(true);
-		if (model.connectToDatabase()) {
-			appFrame.setTableList(model.getTableNamesList());
-			appFrame.setTableData(null, null);
-			appFrame.setListListener(getListListener());
-			appFrame.setTableListener(getTableListener());
-			appFrame.setBtnListeners(getBtnListener());
-			appFrame.setHelpListeners(getHelpListener());
-			appFrame.setMenuItems(this.getMenuItems(),this.getMenuItemsNames(),menuListener);
+			appFrame.setVisible(true);
+			if (model.connectToDatabase()) {
+				appFrame.setTableList(model.getTableNamesList());
+				appFrame.setTableData(null, null);
+				appFrame.setListListener(getListListener());
+				appFrame.setTableListener(getTableListener());
+				appFrame.setBtnListeners(getBtnListener());
+				appFrame.setHelpListeners(getHelpListener());
+
+				appFrame.setMenuItems(this.getMenuItems(), this.getMenuItemsNames(), menuListener);
+
+			}
+		} catch (SQLException e) {
+			Logger.e(Logger.getMethodName(), "starting failed " + e.getMessage());
 		}
-
 	}
-	
 
 	private ActionListener getHelpListener() {
 		return helpMenuListener;
@@ -102,26 +101,32 @@ public class Controller {
 		this.appFrame = app;
 		System.out.println(app);
 	}
-	
-	public List<String> getMenuItems() {
-		
+
+	public List<String> getMenuItems() throws SQLException {
+
 		ResultSet rs = model.executeQuerry("select form_name from cds_michal.t_form_cfg;");
 		List<String> list = Utils.getNthColumnRecordsFrom(rs, 1);
-		
+
 		return list;
 	}
-	public List<String> getMenuItemsNames() {
-		
+
+	public List<String> getMenuItemsNames() throws SQLException {
+
 		ResultSet rs = model.executeQuerry("select form_discription from cds_michal.t_form_cfg;");
 		List<String> list = Utils.getNthColumnRecordsFrom(rs, 1);
-		
+
 		return list;
 	}
 
 	public static void refreshTables(Model model, App appFrame) {
-		ResultSet rs = model.executeQuerry("SELECT * FROM " + model.getLastSelectedTable());
-		DefaultTableModel dtm = Utils.getTableModelFromRS(rs,model); // writes to columns, currenttablemodel
-		appFrame.setTableData(dtm);
+		ResultSet rs;
+		try {
+			rs = model.executeQuerry("SELECT * FROM " + model.getLastSelectedTable());
+			DefaultTableModel dtm = Utils.getTableModelFromRS(rs, model);
+			appFrame.setTableData(dtm);
+		} catch (SQLException e) {
+			Logger.e(Logger.getMethodName(), "Refreshing failed " + e.getMessage());
+		}
 	}
 
 }

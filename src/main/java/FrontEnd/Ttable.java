@@ -10,10 +10,12 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumnModel;
 
-public class Ttable extends JPanel implements ActionListener {
+public class Ttable extends JPanel implements ActionListener, ListSelectionListener {
 
 	private DefaultTableModel dtm;
 	private JTable table;
@@ -60,7 +62,7 @@ public class Ttable extends JPanel implements ActionListener {
 	}
 
 	public void setTableData(JTable table, DefaultTableModel model) {
-
+		table.getSelectionModel().removeListSelectionListener(this);
 		TableColumnModel columnModel = table.getColumnModel();
 		table.setModel(model);
 
@@ -79,6 +81,7 @@ public class Ttable extends JPanel implements ActionListener {
 		}
 
 		((DefaultTableModel) table.getModel()).fireTableDataChanged();
+		table.getSelectionModel().addListSelectionListener(this);
 	}
 
 	public String getValueAt(int row, int column) {
@@ -97,14 +100,15 @@ public class Ttable extends JPanel implements ActionListener {
 		document.writeTdocs(Integer.valueOf(id));
 		document.setIdToUpdate(id);
 		document.setTdocsUpdate();
-		document.turnOffNewBtn();
+		document.disablePanel(2);
+		document.setTdocsSaveUpdate();
+	//	document.turnOffNewBtn();
 
 	}
 
 	public void refreshTableModel(DefaultTableModel tableModel) {
 		setTableData(table, tableModel);
 		tableModel.fireTableDataChanged();
-		//setCursorPos(selectedRow);
 	}
 	
 	public void setCursorPos(int x){
@@ -126,6 +130,17 @@ public class Ttable extends JPanel implements ActionListener {
 
 	public void clear() {
 		table.setModel(new DefaultTableModel());
+	}
+
+	public void setTableIdMap(List<String> columnRecordsFrom) {
+		ids = columnRecordsFrom;		
+	}
+
+	@Override
+	public void valueChanged(ListSelectionEvent arg0) {
+		String id = ids.get(table.getSelectedRow());
+		document.writeTdocs(Integer.valueOf(id));
+		table.grabFocus();
 	}
 
 }

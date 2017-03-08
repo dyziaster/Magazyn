@@ -8,6 +8,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
 
@@ -53,7 +54,11 @@ public class BtnListener implements ActionListener {
 
 		switch (command) {
 		case Utils.COMMAND_NEW:
-			neww();
+			try {
+				neww();
+			} catch (SQLException e2) {
+				Logger.e(Logger.getMethodName(), "New command failed " + e2.getMessage());
+			}
 			break;
 		case Utils.COMMAND_NEWDOC:
 			newDoc();
@@ -65,7 +70,11 @@ public class BtnListener implements ActionListener {
 			edit();
 			break;
 		case Utils.COMMAND_SAVE:
-			save();
+			try {
+				save();
+			} catch (SQLException e1) {
+				Logger.e(Logger.getMethodName(),"save failed"+e1.getMessage());
+			}
 			break;
 		case Utils.COMMAND_CANCEL:
 			cancel();
@@ -81,7 +90,7 @@ public class BtnListener implements ActionListener {
 		Logger.i("CURRENT SQL STATE : " + sb.toString());
 	}
 
-	private void neww() {
+	private void neww() throws SQLException {
 		if(model.getColumnNames() == null){
 			Logger.e(Logger.getMethodName(), "select Table First");
 			return;
@@ -184,7 +193,7 @@ public class BtnListener implements ActionListener {
 		app.selectTextField();
 	}
 
-	private void save() {
+	private void save() throws SQLException {
 
 		if(sb.toString().equals("")){
 			Logger.e(Logger.getMethodName(),"empty SQL");

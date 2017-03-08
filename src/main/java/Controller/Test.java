@@ -42,6 +42,8 @@ public class Test {
 	// jak sql pusty to wpisac 1 do nr doc -- done
 	
 	// select id from vdocs - nie dziala poprawnie
+	// EDIT bug when id = "id", not "id_something"
+	// dodac listiner focus razem
 	
 	public static void createGui() throws ClassNotFoundException, SQLException{
 

@@ -6,6 +6,7 @@ import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,6 +22,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
 
+import Model.Logger;
 import Model.Model;
 import Model.Utils;
 
@@ -49,13 +51,12 @@ public class QuerryFrame extends JFrame {
 	public QuerryFrame() {
 	}
 
-
 	public QuerryFrame(Model model, List<String> listObject, List<String> listNames, List<String> listQuerrys) {
 
-		this(model,listObject,listNames,listQuerrys,"");
+		this(model, listObject, listNames, listQuerrys, "");
 
 	}
-	
+
 	public QuerryFrame(Model model, List<String> listObject, List<String> listNames, List<String> listQuerrys, String frameName) {
 
 		this.model = model;
@@ -70,8 +71,8 @@ public class QuerryFrame extends JFrame {
 
 	private void init() {
 
-//		this.setModal(true);
-//		this.setAlwaysOnTop(true);
+		// this.setModal(true);
+		// this.setAlwaysOnTop(true);
 		this.setTitle(frameName);
 		panel = new JPanel();
 		dtm = new DefaultTableModel();
@@ -156,26 +157,25 @@ public class QuerryFrame extends JFrame {
 	class SqlListener implements ActionListener {
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			ResultSet rs = null;
-			Object o = e.getSource();
+			try {
+				ResultSet rs = null;
+				Object o = e.getSource();
+				if (o instanceof JButton) {
+					sqlButton = ((JButton) o).getActionCommand();
+					rs = model.executeQuerry(sqlButton + " " + sqlMenu);
 
-			if (o instanceof JButton) {
-				sqlButton = ((JButton) o).getActionCommand();
-				rs = model.executeQuerry(sqlButton + " " + sqlMenu);
-
-			} else if (o instanceof JMenuItem) {
-				unSelectAll();
-				selectItem((JCheckBoxMenuItem) o);
-				sqlMenu = ((JMenuItem) o).getActionCommand();
-				rs = model.executeQuerry(sqlButton + " " + sqlMenu);
-
+				} else if (o instanceof JMenuItem) {
+					unSelectAll();
+					selectItem((JCheckBoxMenuItem) o);
+					sqlMenu = ((JMenuItem) o).getActionCommand();
+					rs = model.executeQuerry(sqlButton + " " + sqlMenu);
+				}
+				table.setModel(Utils.getTableModelFromRS(rs));
+				Utils.adjustColumnsOf(table);
+				((DefaultTableModel) table.getModel()).fireTableDataChanged();
+			} catch (SQLException e1) {
+				Logger.e(Logger.getMethodName(), "error " + e1.getMessage());
 			}
-
-			table.setModel(Utils.getTableModelFromRS(rs));
-			Utils.adjustColumnsOf(table);
-			((DefaultTableModel) table.getModel()).fireTableDataChanged();
-
 		}
 	}
-
 }

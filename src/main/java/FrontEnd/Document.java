@@ -94,20 +94,24 @@ public class Document extends JFrame implements ActionListener {
 		setContentPane(contentPane);
 		contentPane.setLayout(new BorderLayout(10, 15));
 
-		//tableModel = Utils.getTableModelFromRS(model.executeQuerry("select * from v_doc_view where doc_id ='"+xx+"';"));
-		//List<String> ids = Utils.getNthColumnRecordsFrom(model.executeQuerry("select id,Towar from v_doc_s"), 1);
-		//Utils.printResultSet(model.executeQuerry("select id,Towar from v_doc_s"));
+		// tableModel = Utils.getTableModelFromRS(model.executeQuerry("select *
+		// from v_doc_view where doc_id ='"+xx+"';"));
+		// List<String> ids =
+		// Utils.getNthColumnRecordsFrom(model.executeQuerry("select id,Towar
+		// from v_doc_s"), 1);
+		// Utils.printResultSet(model.executeQuerry("select id,Towar from
+		// v_doc_s"));
 		table = new Ttable(this, null, null);
 		tdoc = new Tdoc(this, model);
 		tdocs = new Tdocs(this, model);
 		contentPane.add(tdoc, BorderLayout.NORTH);
 		contentPane.add(table, BorderLayout.CENTER);
 		contentPane.add(tdocs, BorderLayout.SOUTH);
-		
+
 		saveBtn = new JButton("save");
-		saveBtn.addActionListener(this);
-	//	contentPane.add(saveBtn, BorderLayout.AFTER_LINE_ENDS);
-		
+		// saveBtn.addActionListener(this);
+		// contentPane.add(saveBtn, BorderLayout.AFTER_LINE_ENDS);
+
 		setVisible(true);
 
 		disablePanel(2);
@@ -118,7 +122,7 @@ public class Document extends JFrame implements ActionListener {
 	public void enablePanel(int num) {
 		switch (num) {
 		case 1:
-			
+
 			break;
 		case 2:
 			table.enableTable();
@@ -128,11 +132,11 @@ public class Document extends JFrame implements ActionListener {
 			break;
 		}
 	}
-	
+
 	public void disablePanel(int num) {
 		switch (num) {
 		case 1:
-			
+
 			break;
 		case 2:
 			table.disableTable();
@@ -171,24 +175,70 @@ public class Document extends JFrame implements ActionListener {
 		tdocs.setNewBtnEnabled(false);
 	}
 
-	public void refreshTable() {
-		tableModel = Utils.getTableModelFromRS(model.executeQuerry("select * from v_doc_s where doc_id ='"+getDocId()+"';"));
+	public void refreshTable() throws SQLException {
+		ResultSet rs = model.executeQuerry("select * from v_doc_s_view where doc_id ='" + getDocId() + "';");
+		System.out.println("print from refreshtable::::::::::::::::");
+		Utils.printResultSet(rs);
+		tableModel = Utils.getTableModelFromRS(rs);
+		List<String> idList = Utils.getColumnRecordsFrom(rs, "id");
+		table.setTableIdMap(idList);
 		table.refreshTableModel(tableModel);
+		for (int x = 0; x < idList.size(); x++) {
+			if (idList.get(x).equals(this.getTdocsId()))
+				table.setCursorPos(x);
+		}
+	}
+
+	public void clearTable() {
+		table.clear();
+	}
+
+	public void setTdocsNew() {
+		tdocs.enterSaveState();
+	}
+
+	public void setTdocsSaveUpdate() {
+		tdocs.stateUpdateSave();
+	}
+
+	public void setTdocsNewState() {
+		tdocs.stateNew();
+	}
+
+	public void manage(String action) {
+
 	}
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		model.executeUpdate("update t_doc set nr_doc ='"+tdoc.generateNrdoc()+"' where id_doc='"+getDocId()+"';");
+		String command = e.getActionCommand();
+
+		switch (command) {
+		case "TDOC_NEW":
+			break;
+		case "TDOC_SAVE":
+			break;
+		case "TDOC_SAVEDOC":
+			break;
+		case "TDOCS_NEW":
+			break;
+		case "TDOCS_SAVE":
+			break;
+		case "TDOCS_UPDATE":
+			break;
+		case "TABLE_EDIT":
+			break;
+		}
 	}
 
-	public void clearTable() {
-		table.clear();		
+	public String getTdocsId() {
+		String id = tdocs.getIdToUpdate();
+		return id;
 	}
+}
 
-	public void setTdocsNew() {
-tdocs.enterSaveState();		
-	}
-
+enum State {
+	canSaveTdocs, canUpdateTdocs, canNewTdocs, newTdoc,
 }
 
 class JmTextField extends JTextField implements Access {

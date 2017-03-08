@@ -63,6 +63,8 @@ public class Tdoc extends JPanel {
 	private Map<String, Integer> mapCfg;
 	private ResultSet rs;
 	private JButton saveDocBtn;
+	private ResultSet rsKont;
+	private ResultSet rsCfg;
 
 	public String getT_doc_id() {
 		return t_doc_id;
@@ -74,6 +76,7 @@ public class Tdoc extends JPanel {
 		this.document = document;
 		panel = this;
 		savedDoc = false;
+		getRSForCombobox();
 
 		GridBagLayout gbl_panel = new GridBagLayout();
 		gbl_panel.columnWidths = new int[] { 0, 0, 0, 0, 0, 0, 0 };
@@ -137,8 +140,7 @@ public class Tdoc extends JPanel {
 		panel.add(textUwagi, gbc_textUwagi);
 		textUwagi.setColumns(10);
 
-		rs = model.executeQuerry("select * from v_konrahent");
-		mapProducent = Utils.getIdNameMapFrom(rs);
+		mapProducent = Utils.getIdNameMapFrom(rsKont);
 		btnProducent = new JmComboBox(true, mapProducent, model);
 		GridBagConstraints gbc_btnProducent = new GridBagConstraints();
 		gbc_btnProducent.insets = new Insets(0, 0, 0, 5);
@@ -162,8 +164,7 @@ public class Tdoc extends JPanel {
 		gbc_btnWlasciciel.gridy = 3;
 		panel.add(btnWlasciciel, gbc_btnWlasciciel);
 
-		rs = model.executeQuerry("select * from v_cfg_doc_pz;");
-		mapCfg = Utils.getIdNameMapFrom(rs);
+		mapCfg = Utils.getIdNameMapFrom(rsCfg);
 		btnCfg = new JmComboBox(true, mapCfg, model);
 		GridBagConstraints gbc_btnCfg = new GridBagConstraints();
 		gbc_btnCfg.insets = new Insets(0, 0, 5, 5);
@@ -185,18 +186,24 @@ public class Tdoc extends JPanel {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				if (inputValidated()) {
-					if (savedDoc == false) {
-						saveDoc();
-						t_doc_id = getDocID();
-						document.enablePanel(2);
-						document.enablePanel(3);
-						document.clearTdocs();
-						t_doc_id = Utils.getFirstRecordFromRS(model.executeQuerry("SELECT id_doc FROM t_doc WHERE id_doc = (SELECT MAX(id_doc) FROM t_doc);"));
-						btnCfg.setEnabled(false);
-						saveBtn.setText("UPDATE");
-						savedDoc = true;
-					} else
-						updateDoc();
+
+					try {
+						if (savedDoc == false) {
+							saveDoc();
+							t_doc_id = getDocID();
+							document.enablePanel(2);
+							document.setTdocsNewState();
+							document.clearTdocs();
+							t_doc_id = Utils.getFirstRecordFromRS(model.executeQuerry("SELECT id_doc FROM t_doc WHERE id_doc = (SELECT MAX(id_doc) FROM t_doc);"));
+							btnCfg.setEnabled(false);
+							saveBtn.setText("UPDATE");
+							savedDoc = true;
+						} else
+							updateDoc();
+					} catch (SQLException e1) {
+						Logger.e(Logger.getMethodName(), "save failed " + e1.getMessage());
+					}
+
 				}
 			}
 		});
@@ -210,8 +217,12 @@ public class Tdoc extends JPanel {
 		saveDocBtn.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				if (savedDoc == true)
-					model.executeUpdate("update t_doc set nr_doc ='" + generateNrdoc() + "' where id_doc='" + getT_doc_id() + "';");
+				try {
+					if (savedDoc == true)
+						model.executeUpdate("update t_doc set nr_doc ='" + generateNrdoc() + "' where id_doc='" + getT_doc_id() + "';");
+				} catch (SQLException e1) {
+					Logger.e(Logger.getMethodName(),"save document failed "+e1.getMessage() );
+				}
 			}
 		});
 
@@ -418,7 +429,7 @@ public class Tdoc extends JPanel {
 		textNrDoc.setText("");
 	}
 
-	public int generateNrdoc() {
+	public int generateNrdoc() throws SQLException {
 
 		String id_cfg_doc = String.valueOf(mapCfg.get(btnCfg.getSelectedItem()));
 		String querry = "select v_doc_nr.nr_doc from v_doc_nr where v_doc_nr.doc_cfg_doc_id=" + id_cfg_doc + ";";
@@ -439,7 +450,7 @@ public class Tdoc extends JPanel {
 
 	}
 
-	private void updateDoc() {
+	private void updateDoc() throws SQLException {
 
 		StringBuilder sb = new StringBuilder("");
 		sb.append("update t_doc set ");
@@ -464,7 +475,7 @@ public class Tdoc extends JPanel {
 		model.executeUpdate(sb.toString());
 	}
 
-	private void saveDoc() {
+	private void saveDoc() throws SQLException {
 
 		String nrDoc, producent, dostawca, wlasciciel, nrKontener, nrSamochod, uwagi = "";
 		String dataDoc, dataDostawy = "";
@@ -493,17 +504,30 @@ public class Tdoc extends JPanel {
 
 	}
 
-	private String getDocID() {
+	private String getDocID() throws SQLException {
 		return Utils.getFirstRecordFromRS(model.executeQuerry("SELECT id_doc FROM t_doc WHERE id_doc = (SELECT MAX(id_doc) FROM t_doc);"));
 	}
 
 	private void populateComboBoxes() {
-		String querry = "SELECT kon_nazwa FROM v_kontrahent_doc";
-		ResultSet rs = model.executeQuerry(querry);
+		try {
+			String querry = "SELECT kon_nazwa FROM v_kontrahent_doc";
+			ResultSet rs = model.executeQuerry(querry);
+			Utils.addToComboBox(btnDostawca, mapProducent.keySet());
+			Utils.addToComboBox(btnProducent, mapProducent.keySet());
+			Utils.addToComboBox(btnWlasciciel, mapProducent.keySet());
+		} catch (SQLException e) {
+			Logger.e(Logger.getMethodName(), " " + e.getMessage());
+		}
+	}
 
-		Utils.addToComboBox(btnDostawca, mapProducent.keySet());
-		Utils.addToComboBox(btnProducent, mapProducent.keySet());
-		Utils.addToComboBox(btnWlasciciel, mapProducent.keySet());
+	private void getRSForCombobox() {
+
+		try {
+			rsKont = model.executeQuerry("select * from v_konrahent");
+			rsCfg = model.executeQuerry("select * from v_cfg_doc_pz;");
+		} catch (SQLException e) {
+			Logger.e(Logger.getMethodName(), " " + e.getMessage());
+		}
 	}
 
 }

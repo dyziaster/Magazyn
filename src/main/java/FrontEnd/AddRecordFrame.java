@@ -11,6 +11,7 @@ import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -42,10 +43,14 @@ public class AddRecordFrame extends JDialog {
 		this.setModalityType(ModalityType.APPLICATION_MODAL);
 		// this.setUndecorated(true);
 		// this.setBounds(GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds());
-		initialize(columnNames, foreignKeys);
+		try {
+			initialize(columnNames, foreignKeys);
+		} catch (SQLException e) {
+			Logger.e(Logger.getMethodName(), "Initializing failed " + e.getMessage());
+		}
 	}
 
-	private void initialize(List<String> columnNames, Map<String, String> foreignKeys) {
+	private void initialize(List<String> columnNames, Map<String, String> foreignKeys) throws SQLException {
 
 		Logger.i("...............................................INITIALIZE");
 

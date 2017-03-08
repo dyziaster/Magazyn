@@ -7,6 +7,7 @@ import java.sql.ResultSet;
 import javax.swing.JTextField;
 
 import FrontEnd.App;
+import Model.Logger;
 import Model.Model;
 
 public class CustomListener implements ActionListener {
@@ -21,6 +22,7 @@ public class CustomListener implements ActionListener {
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
+		try{
 		if (e.getActionCommand().equals("text")) {
 			JTextField tf = (JTextField) e.getSource();
 			String querry = tf.getText();
@@ -41,6 +43,9 @@ public class CustomListener implements ActionListener {
 				}
 			}
 			tf.setText("");
+		}
+		}catch (Exception ee){
+			Logger.e(Logger.getMethodName(),"textfield listener failed "+ee.getMessage() );
 		}
 	}
 

@@ -75,20 +75,18 @@ public class Model {
 
 	}
 
-	public void executeUpdate(String querry) {
+	public void executeUpdate(String querry) throws SQLException {
 		Logger.i(Logger.getMethodName(), querry);
 		Statement stmt = null;
 		System.out.println("Creating statement2...");
-		try {
+	
 			stmt = conn.createStatement();
 			stmt.executeUpdate(querry);
-		} catch (SQLException e) {
-			Logger.e(Logger.getMethodName(), e.getMessage());
-		}
+
 
 	}
 
-	public ResultSet executeQuerry(String querry) {
+	public ResultSet executeQuerry(String querry) throws SQLException{
 		Logger.i(Logger.getMethodName(), querry);
 		Statement stmt = null;
 		ResultSet rs = null;
@@ -101,7 +99,7 @@ public class Model {
 		return rs;
 	}
 
-	public List<String> getTableNamesList() { // returns tables names from
+	public List<String> getTableNamesList() throws SQLException { // returns tables names from
 												// database
 		String querry = "SELECT table_name FROM information_schema.tables where table_schema='" + DATABASE + "'";
 		ResultSet rs = executeQuerry(querry);
@@ -175,12 +173,12 @@ public class Model {
 		return pk;
 	}
 
-	public List<String> getColumnListFrom(String table) {
+	public List<String> getColumnListFrom(String table) throws SQLException {
 		ResultSet rs = this.executeQuerry("SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME =N'" + table + "';");
 		return Utils.getNthColumnRecordsFrom(rs, 4);
 	}
 
-	public List<String> getColumnNamesWithoutID(String table) { // uses columnNames
+	public List<String> getColumnNamesWithoutID(String table) throws SQLException { // uses columnNames
 		String ID = this.getPrimaryKeyOf(table);
 		List<String> list = new ArrayList<>();
 		list.addAll(this.getColumnListFrom(table));
