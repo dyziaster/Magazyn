@@ -63,6 +63,7 @@ public class Tdocs extends JPanel {
 	private UtilDateModel m2;
 	private UtilDateModel m;
 	private JButton newBtn;
+	private JmTextField trwalosc;
 
 	public Tdocs() {
 		this(null, null);
@@ -123,7 +124,7 @@ public class Tdocs extends JPanel {
 			gbc.weightx = 1;
 			panelDocs.add(nazwaTowaru, gbc);
 
-			Utils.addToComboBox(nazwaTowaru, mapTowar.keySet());
+			// Utils.addToComboBox(nazwaTowaru, mapTowar.keySet());
 
 			rs = model.executeQuerry("select * from v_magazyn");
 			mapMagazyn = Utils.getIdNameMapFrom(rs);
@@ -136,7 +137,7 @@ public class Tdocs extends JPanel {
 			gbc.weightx = 1;
 			panelDocs.add(magazyn, gbc);
 
-			Utils.addToComboBox(magazyn, mapMagazyn.keySet());
+			// Utils.addToComboBox(magazyn, mapMagazyn.keySet());
 
 			save2Btn = new JButton("save");
 			GridBagConstraints gbc_button = new GridBagConstraints();
@@ -145,49 +146,53 @@ public class Tdocs extends JPanel {
 			gbc_button.gridx = 4;
 			gbc_button.gridy = 7;
 			panelDocs.add(save2Btn, gbc_button);
-			save2Btn.addActionListener(new ActionListener() {
-
-				@Override
-				public void actionPerformed(ActionEvent arg0) {
-					try {
-						if (inputValidated()) {
-							if (savedDocs == false) {
-								saveDocs(document.getDocId());
-								refreshTable();
-								enterUpdateState();
-								stateNew();
-								document.enablePanel(2);
-							} else {
-								updateDocs(idToUpdate);
-								refreshTable();
-								document.enablePanel(2);
-								stateNew();
-							}
-						}
-					} catch (SQLException e) {
-						Logger.e(Logger.getMethodName(), "save failed " + e.getMessage());
-					}
-				}
-			});
-
+			// save2Btn.addActionListener(new ActionListener() {
+			//
+			// @Override
+			// public void actionPerformed(ActionEvent arg0) {
+			// try {
+			// if (inputValidated()) {
+			// if (savedDocs == false) {
+			// saveDocs(document.getDocId());
+			// refreshTable();
+			// enterUpdateState();
+			// stateNew();
+			// document.enablePanel(2);
+			// } else {
+			// updateDocs(idToUpdate);
+			// refreshTable();
+			// document.enablePanel(2);
+			// stateNew();
+			// }
+			// }
+			// } catch (SQLException e) {
+			// Logger.e(Logger.getMethodName(), "save failed " +
+			// e.getMessage());
+			// }
+			// }
+			// });
+			save2Btn.setActionCommand("TDOCS_SAVE");
+			save2Btn.addActionListener(document);
 			newBtn = new JButton("NEW");
 			gbc_button.insets = new Insets(5, 0, 5, 0);
 			gbc_button.fill = GridBagConstraints.HORIZONTAL;
 			gbc_button.gridx = 3;
 			gbc_button.gridy = 7;
 			panelDocs.add(newBtn, gbc_button);
-			newBtn.addActionListener(new ActionListener() {
-
-				@Override
-				public void actionPerformed(ActionEvent arg0) {
-
-					savedDocs = false;
-					clearComponents();
-					setBtn("SAVE");
-					stateUpdateSave();
-					document.disablePanel(2);
-				}
-			});
+			// newBtn.addActionListener(new ActionListener() {
+			//
+			// @Override
+			// public void actionPerformed(ActionEvent arg0) {
+			//
+			// savedDocs = false;
+			// clearComponents();
+			// setBtn("SAVE");
+			// stateUpdateSave();
+			// document.disablePanel(2);
+			// }
+			// });
+			newBtn.setActionCommand("TDOCS_NEW");
+			newBtn.addActionListener(document);
 
 			m = new UtilDateModel();
 			m.setValue(new Date());
@@ -220,6 +225,7 @@ public class Tdocs extends JPanel {
 			nrPartiiWew = new JmTextField(panelDocs, "doc_s_nr_partii_wew", 0, 7, null, true);
 			kod1 = new JmTextField(panelDocs, "doc_s_kod_kreskowy_1", 1, 3, null, true);
 			kod2 = new JmTextField(panelDocs, "doc_s_kod_kreskowy_2", 1, 5, null, true);
+			trwalosc = new JmTextField(panelDocs, "doc_s_data_trwalosci", 1, 7, null, true);
 
 			FocusListener fl = new TextFocusListener();
 			wagaNetto = new JmTextField(panelDocs, "doc_s_waga_netto_op", 3, 1, fl, true);// A
@@ -243,11 +249,22 @@ public class Tdocs extends JPanel {
 			new JmLabel(panelDocs, "Waga brutto", 3, 4);
 			new JmLabel(panelDocs, "Waga total", 4, 4);
 			new JmLabel(panelDocs, "Nr partii wew", 0, 6);
+			new JmLabel(panelDocs, "data trwalosci", 1, 6);
 			new JmLabel(panelDocs, "data produkcji", 2, 6);
 		} catch (SQLException e) {
 			Logger.e(Logger.getMethodName(), "initialize TdocS failed " + e.getMessage());
 		}
 
+	}
+
+	public void fillTowarCombo(Iterable<?> list) {
+		Utils.removeAllFromComboBox(nazwaTowaru);
+		Utils.addToComboBox(nazwaTowaru, list);
+	}
+
+	public void fillMagazynCombo(Iterable<?> list) {
+		Utils.removeAllFromComboBox(magazyn);
+		Utils.addToComboBox(magazyn, list);
 	}
 
 	public void disablePanelDocs() {
@@ -267,7 +284,7 @@ public class Tdocs extends JPanel {
 		}
 	}
 
-	private void saveDocs(String t_doc_id) throws SQLException {
+	public void saveDocs(String t_doc_id) throws SQLException {
 
 		List<String> columns = model.getColumnNamesWithoutID("t_doc_s");
 
@@ -281,6 +298,7 @@ public class Tdocs extends JPanel {
 		String dataPolowu = this.dataPolowu.getOutput();
 		String dataZamrozenia = this.dataZamrozenia.getOutput();
 		String dataProdukcji = this.dataProdukcji.getOutput();
+		String dataTrwalosci = this.trwalosc.getOutput();
 		String netto = wagaNetto.getOutput();
 		String waga = wagaRyby.getOutput();
 		String brutto = wagaBrutto.getOutput();
@@ -289,7 +307,7 @@ public class Tdocs extends JPanel {
 		String kod2 = this.kod2.getOutput();
 		String uwag = "uwaga";
 
-		List<String> values = Arrays.asList(docId, delete, view, magId, partiaZew, partiaWew, towId, dataPolowu, dataZamrozenia, dataProdukcji, netto, waga, brutto, szt, kod1, kod2, uwag);
+		List<String> values = Arrays.asList(docId, delete, view, magId, partiaZew, partiaWew, towId, dataPolowu, dataZamrozenia, dataProdukcji, dataTrwalosci, netto, waga, brutto, szt, kod1, kod2, uwag);
 		String querry = Utils.getSqlValuesStringFromList(values, "t_doc_s", columns);
 		System.out.println("size v=" + values.size() + " size col=" + columns.size());
 		System.out.println("columns : " + columns);
@@ -299,20 +317,24 @@ public class Tdocs extends JPanel {
 
 	}
 
-	private void refreshTable() throws SQLException {
+	public void refreshTable() throws SQLException {
 		document.refreshTable();
 	}
 
 	public void setIdToUpdate(String idToUpdate) {
 		this.idToUpdate = idToUpdate;
 	}
-	
+
 	public String getIdToUpdate() {
 		return idToUpdate;
 	}
 
 	public void setBtn(String name) {
 		save2Btn.setText(name);
+		if (name.equals("Save")) {
+			save2Btn.setActionCommand("TDOCS_SAVE");
+		} else if (name.equals("Update"))
+			save2Btn.setActionCommand("TDOCS_UPDATE");
 	}
 
 	public void enterUpdateState() {
@@ -335,7 +357,7 @@ public class Tdocs extends JPanel {
 		newBtn.setEnabled(false);
 	}
 
-	private void updateDocs(String t_doc_id) throws SQLException {
+	public void updateDocs(String t_doc_id) throws SQLException {
 
 		StringBuilder sb = new StringBuilder("");
 		sb.append("update t_doc_s set ");
@@ -430,7 +452,7 @@ public class Tdocs extends JPanel {
 		}
 	}
 
-	private boolean inputValidated() {
+	public boolean inputValidated() {
 		Component[] components = panelDocs.getComponents();
 
 		for (Component c : components) {
@@ -454,7 +476,6 @@ public class Tdocs extends JPanel {
 			ResultSet rs1 = model.executeQuerry("select Towar from v_towar_show where id_tow = (select doc_s_nazwa_tow_id from t_doc_s where id = '" + rowId + "');");
 			ResultSet rs2 = model.executeQuerry("select magazyn from v_magazyn where id_ = (select doc_s_magazyn_id from t_doc_s where id = '" + rowId + "');");
 			Utils.printResultSet(rs1);
-
 
 			while (rs.next()) {
 				nrPartiiWew.setText(rs.getString(nrPartiiWew.getName()));
@@ -496,4 +517,16 @@ public class Tdocs extends JPanel {
 		newBtn.setEnabled(false);
 	}
 
+	public void addToTowar(List<String> list) {
+		Utils.addToComboBox(nazwaTowaru, list);
+	}
+
+	public void addToMagazyn(List<String> list) {
+		Utils.addToComboBox(magazyn, list);
+	}
+
+	public void clearTowarMagazyn() {
+		Utils.removeAllFromComboBox(magazyn);
+		Utils.removeAllFromComboBox(nazwaTowaru);
+	}
 }

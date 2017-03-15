@@ -55,15 +55,11 @@ public class Tdoc extends JPanel {
 	private JButton newBtn;
 	private Tdoc panel;
 	private boolean savedDoc;
-	private JTable table;
 	private JLabel sum1;
 	private JLabel sum2;
 	private String t_doc_id;
-	private Map<String, Integer> mapProducent;
 	private Map<String, Integer> mapCfg;
-	private ResultSet rs;
 	private JButton saveDocBtn;
-	private ResultSet rsKont;
 	private ResultSet rsCfg;
 
 	public String getT_doc_id() {
@@ -140,8 +136,7 @@ public class Tdoc extends JPanel {
 		panel.add(textUwagi, gbc_textUwagi);
 		textUwagi.setColumns(10);
 
-		mapProducent = Utils.getIdNameMapFrom(rsKont);
-		btnProducent = new JmComboBox(true, mapProducent, model);
+		btnProducent = new JmComboBox(true, null, model);
 		GridBagConstraints gbc_btnProducent = new GridBagConstraints();
 		gbc_btnProducent.insets = new Insets(0, 0, 0, 5);
 		gbc_btnProducent.fill = GridBagConstraints.HORIZONTAL;
@@ -149,7 +144,7 @@ public class Tdoc extends JPanel {
 		gbc_btnProducent.gridy = 3;
 		panel.add(btnProducent, gbc_btnProducent);
 
-		btnDostawca = new JmComboBox(true, mapProducent, model);
+		btnDostawca = new JmComboBox(true, null, model);
 		GridBagConstraints gbc_btnDostawca = new GridBagConstraints();
 		gbc_btnDostawca.insets = new Insets(0, 0, 0, 5);
 		gbc_btnDostawca.fill = GridBagConstraints.HORIZONTAL;
@@ -157,7 +152,7 @@ public class Tdoc extends JPanel {
 		gbc_btnDostawca.gridy = 3;
 		panel.add(btnDostawca, gbc_btnDostawca);
 
-		btnWlasciciel = new JmComboBox(true, mapProducent, model);
+		btnWlasciciel = new JmComboBox(true, null, model);
 		GridBagConstraints gbc_btnWlasciciel = new GridBagConstraints();
 		gbc_btnWlasciciel.fill = GridBagConstraints.HORIZONTAL;
 		gbc_btnWlasciciel.gridx = 5;
@@ -172,6 +167,8 @@ public class Tdoc extends JPanel {
 		gbc_btnCfg.gridx = 1;
 		gbc_btnCfg.gridy = 2;
 		Utils.addToComboBox(btnCfg, mapCfg.keySet());
+		btnCfg.setActionCommand("TDOC_CFG");
+		btnCfg.addActionListener(document);
 		panel.add(btnCfg, gbc_btnCfg);
 
 		saveBtn = new JButton("save");
@@ -181,32 +178,9 @@ public class Tdoc extends JPanel {
 		gbc_button.gridx = 2;
 		gbc_button.gridy = 4;
 		panel.add(saveBtn, gbc_button);
-		saveBtn.addActionListener(new ActionListener() {
 
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				if (inputValidated()) {
-
-					try {
-						if (savedDoc == false) {
-							saveDoc();
-							t_doc_id = getDocID();
-							document.enablePanel(2);
-							document.setTdocsNewState();
-							document.clearTdocs();
-							t_doc_id = Utils.getFirstRecordFromRS(model.executeQuerry("SELECT id_doc FROM t_doc WHERE id_doc = (SELECT MAX(id_doc) FROM t_doc);"));
-							btnCfg.setEnabled(false);
-							saveBtn.setText("UPDATE");
-							savedDoc = true;
-						} else
-							updateDoc();
-					} catch (SQLException e1) {
-						Logger.e(Logger.getMethodName(), "save failed " + e1.getMessage());
-					}
-
-				}
-			}
-		});
+		saveBtn.setActionCommand("TDOC_SAVE");
+		saveBtn.addActionListener(document);
 
 		saveDocBtn = new JButton("save document");
 		gbc_button.insets = new Insets(5, 0, 5, 0);
@@ -214,42 +188,21 @@ public class Tdoc extends JPanel {
 		gbc_button.gridx = 5;
 		gbc_button.gridy = 4;
 		panel.add(saveDocBtn, gbc_button);
-		saveDocBtn.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				try {
-					if (savedDoc == true)
-						model.executeUpdate("update t_doc set nr_doc ='" + generateNrdoc() + "' where id_doc='" + getT_doc_id() + "';");
-				} catch (SQLException e1) {
-					Logger.e(Logger.getMethodName(),"save document failed "+e1.getMessage() );
-				}
-			}
-		});
+
+		saveDocBtn.setActionCommand("TDOC_SAVEDOC");
+		saveDocBtn.addActionListener(document);
 
 		newBtn = new JButton("New");
 		gbc_button.gridx = 0;
 		panel.add(newBtn, gbc_button);
-		newBtn.addActionListener(new ActionListener() {
 
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				newDoc();
-				document.clearTable();
-				document.disablePanel(2);
-				document.setTdocsNew();
-				document.disablePanel(3);
-				btnCfg.clear();
-				document.clearTdocs();
-				// clearComponents();
-				savedDoc = false;
-			}
-		});
+		newBtn.setActionCommand("TDOC_NEW");
+		newBtn.addActionListener(document);
 
 		JPanel panel_2 = new JPanel();
 		panel_2.setLayout(new BorderLayout());
 		JLabel lblNotes = new JLabel("Notes");
 		panel_2.add(lblNotes, BorderLayout.NORTH);
-		// panel_2.add(scrollTable, BorderLayout.CENTER);
 		JPanel panel_3 = new JPanel();
 		sum1 = new JLabel("");
 		sum2 = new JLabel("");
@@ -257,7 +210,6 @@ public class Tdoc extends JPanel {
 		panel_3.add(sum2);
 		panel_2.add(panel_3, BorderLayout.SOUTH);
 
-		populateComboBoxes();
 		setVisible(true);
 
 		btnCfg.setName("doc_cfg_doc_id");
@@ -274,9 +226,10 @@ public class Tdoc extends JPanel {
 
 	private void addLabels() {
 
-		JLabel lblNewLabel = new JLabel("Odbiorca");
+		JLabel lblNewLabel = new JLabel("CDS Europe sp. z o.o.");
 		GridBagConstraints gbc_lblNewLabel = new GridBagConstraints();
-		gbc_lblNewLabel.gridheight = 3;
+		gbc_lblNewLabel.gridheight = 2;
+		gbc_lblNewLabel.gridwidth = 2;
 		gbc_lblNewLabel.insets = new Insets(0, 0, 5, 5);
 		gbc_lblNewLabel.gridx = 0;
 		gbc_lblNewLabel.gridy = 0;
@@ -284,10 +237,10 @@ public class Tdoc extends JPanel {
 
 		JLabel lblNewLabel_2 = new JLabel("PZ");
 		GridBagConstraints gbc_lblNewLabel_2 = new GridBagConstraints();
-		gbc_lblNewLabel_2.gridheight = 2;
+		//gbc_lblNewLabel_2.gridheight = 2;
 		gbc_lblNewLabel_2.insets = new Insets(0, 0, 5, 5);
-		gbc_lblNewLabel_2.gridx = 1;
-		gbc_lblNewLabel_2.gridy = 0;
+		gbc_lblNewLabel_2.gridx = 0;
+		gbc_lblNewLabel_2.gridy = 2;
 		panel.add(lblNewLabel_2, gbc_lblNewLabel_2);
 
 		JLabel lblNewLabel_3 = new JLabel("Nr doc");
@@ -384,7 +337,7 @@ public class Tdoc extends JPanel {
 		textNrDoc.setText("");
 	}
 
-	private boolean inputValidated() {
+	public boolean inputValidated() {
 		Component[] components = panel.getComponents();
 
 		for (Component c : components) {
@@ -398,43 +351,12 @@ public class Tdoc extends JPanel {
 		return true;
 	}
 
-	// private void generateTableView() {
-	//
-	// String id = Utils.getFirstRecordFromRS(model.executeQuerry("SELECT id_doc
-	// FROM t_doc WHERE id_doc = (SELECT MAX(id_doc) FROM t_doc);"));
-	// String ID = textNrDoc.getText();
-	// ResultSet rs = model.executeQuerry("select * from v_doc_s t1 where
-	// t1.doc_id=" + id + ";");
-	// DefaultTableModel dtm = Utils.getTableModelFromRS(rs, model);
-	// this.setTableData(dtm);
-	// rs = model.executeQuerry("select sum(t1.doc_s_ilosc_szt_op) from v_doc_s
-	// t1 where t1.doc_id=" + id + " and t1.doc_s_delete=0");
-	// sum1.setText(Utils.getFirstRecordFromRS(rs));
-	// rs = model.executeQuerry("select sum(t1.doc_s_ilosc_szt_op *
-	// t1.doc_s_waga_netto_op) from v_doc_s t1 where t1.doc_id=" + id + " and
-	// t1.doc_s_delete=0");
-	// sum2.setText(Utils.getFirstRecordFromRS(rs));
-	//
-	// }
-
-	private void close() {
-		// model.executeQuerry("grant insert,update on t_doc to PUBLIC");
-		document.dispose();
-	}
-
-	private void newDoc() {
-
-		saveBtn.setText("Save");
-		btnCfg.setEnabled(true);
-		textNrDoc.setText("");
-	}
-
 	public int generateNrdoc() throws SQLException {
 
-		String id_cfg_doc = String.valueOf(mapCfg.get(btnCfg.getSelectedItem()));
-		String querry = "select v_doc_nr.nr_doc from v_doc_nr where v_doc_nr.doc_cfg_doc_id=" + id_cfg_doc + ";";
-		ResultSet rs = model.executeQuerry(querry);
 		try {
+			String id_cfg_doc = String.valueOf(mapCfg.get(btnCfg.getSelectedItem()));
+			String querry = "select v_doc_nr.nr_doc from v_doc_nr where v_doc_nr.doc_cfg_doc_id=" + id_cfg_doc + ";";
+			ResultSet rs = model.executeQuerry(querry);
 			if (!rs.isBeforeFirst()) {
 				textNrDoc.setText("1");
 				return 1;
@@ -450,32 +372,8 @@ public class Tdoc extends JPanel {
 
 	}
 
-	private void updateDoc() throws SQLException {
 
-		StringBuilder sb = new StringBuilder("");
-		sb.append("update t_doc set ");
-		// String id = Utils.getFirstRecordFromRS(model.executeQuerry("SELECT
-		// id_doc FROM t_doc WHERE id_doc = (SELECT MAX(id_doc) FROM t_doc);"));
-
-		Component[] components = panel.getComponents();
-		int i = 1;
-		for (Component c : components) {
-			if (c instanceof Access) {
-				if (i != 1)
-					sb.append(",");
-				sb.append(c.getName());
-				sb.append("='");
-				sb.append(((Access) c).getOutput());
-				sb.append("'");
-				i++;
-			}
-		}
-
-		sb.append("where id_doc=" + t_doc_id);
-		model.executeUpdate(sb.toString());
-	}
-
-	private void saveDoc() throws SQLException {
+	public void saveDoc() throws SQLException {
 
 		String nrDoc, producent, dostawca, wlasciciel, nrKontener, nrSamochod, uwagi = "";
 		String dataDoc, dataDostawy = "";
@@ -504,30 +402,53 @@ public class Tdoc extends JPanel {
 
 	}
 
-	private String getDocID() throws SQLException {
-		return Utils.getFirstRecordFromRS(model.executeQuerry("SELECT id_doc FROM t_doc WHERE id_doc = (SELECT MAX(id_doc) FROM t_doc);"));
-	}
-
-	private void populateComboBoxes() {
-		try {
-			String querry = "SELECT kon_nazwa FROM v_kontrahent_doc";
-			ResultSet rs = model.executeQuerry(querry);
-			Utils.addToComboBox(btnDostawca, mapProducent.keySet());
-			Utils.addToComboBox(btnProducent, mapProducent.keySet());
-			Utils.addToComboBox(btnWlasciciel, mapProducent.keySet());
-		} catch (SQLException e) {
-			Logger.e(Logger.getMethodName(), " " + e.getMessage());
-		}
+	public void populateContrahents(List<String> producent,List<String> dostawca,List<String> wlasciciel) {
+		Utils.addToComboBox(btnDostawca, dostawca);
+		Utils.addToComboBox(btnProducent, producent);
+		Utils.addToComboBox(btnWlasciciel, wlasciciel);
 	}
 
 	private void getRSForCombobox() {
 
 		try {
-			rsKont = model.executeQuerry("select * from v_konrahent");
 			rsCfg = model.executeQuerry("select * from v_cfg_doc_pz;");
 		} catch (SQLException e) {
 			Logger.e(Logger.getMethodName(), " " + e.getMessage());
 		}
+	}
+
+	public void enterUpdateState() {
+		btnCfg.setEnabled(false);
+		saveBtn.setText("UPDATE");
+		saveBtn.setActionCommand("TDOC_UPDATE");
+	}
+
+	public void setCfgEnabled(boolean bol) {
+		btnCfg.setEnabled(bol);
+	}
+
+	public void newDoc() {
+		saveBtn.setText("Save");
+		saveBtn.setActionCommand("TDOC_SAVE");
+		btnCfg.setEnabled(true);
+		textNrDoc.setText("");
+		btnCfg.clear();
+	}
+
+	public String getSelectedCfg() {
+		return btnCfg.getSelectedItem().toString();
+	}
+
+	public void clearContrahents() {
+		Utils.removeAllFromComboBox(btnDostawca);
+		Utils.removeAllFromComboBox(btnProducent);
+		Utils.removeAllFromComboBox(btnWlasciciel);	
+	}
+
+	public void setContrahMappings(Map<String, Integer> mapProd, Map<String, Integer> mapDost, Map<String, Integer> mapWlasc) {
+		btnDostawca.setMap(mapDost);
+		btnProducent.setMap(mapProd);
+		btnWlasciciel.setMap(mapWlasc);
 	}
 
 }

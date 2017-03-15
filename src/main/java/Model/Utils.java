@@ -296,6 +296,18 @@ public class Utils {
 		return list;
 	}
 
+	public static void setComboPosition(JComboBox<Object> cb,int position){
+		ActionListener al = null;
+		if (cb.getActionListeners().length > 0) {
+			al = cb.getActionListeners()[0];
+			cb.removeActionListener(al);
+			cb.setSelectedIndex(position);
+			cb.addActionListener(al);
+		} else {
+			cb.setSelectedIndex(position);
+		}
+	}
+	
 	public static void addToComboBox(JComboBox<Object> cb, Iterable<?> list) {
 		ActionListener al = null;
 		if (cb.getActionListeners().length > 0) {
@@ -311,6 +323,18 @@ public class Utils {
 			for (Object o : list) {
 				cb.addItem(o);
 			}
+		}
+	}
+	
+	public static void removeAllFromComboBox(JComboBox<Object> cb) {
+		ActionListener al = null;
+		if (cb.getActionListeners().length > 0) {
+			al = cb.getActionListeners()[0];
+			cb.removeActionListener(al);
+			cb.removeAllItems();
+			cb.addActionListener(al);
+		} else {
+			cb.removeAllItems();
 		}
 	}
 

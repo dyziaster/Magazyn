@@ -57,7 +57,11 @@ public class Document extends JFrame implements ActionListener {
 	private Ttable table;
 	private DefaultTableModel tableModel;
 	private Model model;
-	private JButton saveBtn;
+	// private JButton saveBtn;
+	private List<String> idList;
+	private boolean tdocSavedState = false;
+	private boolean tdocsSavedState = false;
+	private String t_doc_id;
 
 	/**
 	 * Launch the application.
@@ -108,7 +112,7 @@ public class Document extends JFrame implements ActionListener {
 		contentPane.add(table, BorderLayout.CENTER);
 		contentPane.add(tdocs, BorderLayout.SOUTH);
 
-		saveBtn = new JButton("save");
+		// saveBtn = new JButton("save");
 		// saveBtn.addActionListener(this);
 		// contentPane.add(saveBtn, BorderLayout.AFTER_LINE_ENDS);
 
@@ -155,8 +159,8 @@ public class Document extends JFrame implements ActionListener {
 		tdocs.writeTdocs(rowId);
 	}
 
-	public String getDocId() {
-		return tdoc.getT_doc_id();
+	public String getT_doc_id() {
+		return t_doc_id;
 	}
 
 	public void setTdocsUpdate() {
@@ -175,18 +179,62 @@ public class Document extends JFrame implements ActionListener {
 		tdocs.setNewBtnEnabled(false);
 	}
 
+	private void populateTowar() throws SQLException {
+		String cfg = tdoc.getSelectedCfg();
+		ResultSet rs = model.executeQuerry("select doc_view_lista_tow from t_cfg_doc where doc_nazwa ='" + cfg + "';");
+		String view = Utils.getFirstRecordFromRS(rs);
+		rs = model.executeQuerry("select Towar from " + view);
+		List<String> list = Utils.getNthColumnRecordsFrom(rs, 1);
+		tdocs.addToTowar(list);
+
+	}
+
+	private void populateMagazyn() throws SQLException {
+		String cfg = tdoc.getSelectedCfg();
+		ResultSet rs = model.executeQuerry("select doc_view_lista_magazynow from t_cfg_doc where doc_nazwa ='" + cfg + "';");
+		String view = Utils.getFirstRecordFromRS(rs);
+		rs = model.executeQuerry("select magazyn from " + view);
+		List<String> list = Utils.getNthColumnRecordsFrom(rs, 1);
+		tdocs.addToMagazyn(list);
+	}
+
 	public void refreshTable() throws SQLException {
-		ResultSet rs = model.executeQuerry("select * from v_doc_s_view where doc_id ='" + getDocId() + "';");
+		ResultSet rs = model.executeQuerry("select * from v_doc_s_view where doc_id ='" + t_doc_id + "';");
 		System.out.println("print from refreshtable::::::::::::::::");
 		Utils.printResultSet(rs);
 		tableModel = Utils.getTableModelFromRS(rs);
-		List<String> idList = Utils.getColumnRecordsFrom(rs, "id");
+		idList = Utils.getColumnRecordsFrom(rs, "id");
 		table.setTableIdMap(idList);
 		table.refreshTableModel(tableModel);
 		for (int x = 0; x < idList.size(); x++) {
 			if (idList.get(x).equals(this.getTdocsId()))
 				table.setCursorPos(x);
 		}
+	}
+
+	public void updateDoc() throws SQLException {
+
+		StringBuilder sb = new StringBuilder("");
+		sb.append("update t_doc set ");
+		// String id = Utils.getFirstRecordFromRS(model.executeQuerry("SELECT
+		// id_doc FROM t_doc WHERE id_doc = (SELECT MAX(id_doc) FROM t_doc);"));
+
+		Component[] components = tdoc.getComponents();
+		int i = 1;
+		for (Component c : components) {
+			if (c instanceof Access) {
+				if (i != 1)
+					sb.append(",");
+				sb.append(c.getName());
+				sb.append("='");
+				sb.append(((Access) c).getOutput());
+				sb.append("'");
+				i++;
+			}
+		}
+
+		sb.append("where id_doc=" + t_doc_id);
+		model.executeUpdate(sb.toString());
 	}
 
 	public void clearTable() {
@@ -215,25 +263,182 @@ public class Document extends JFrame implements ActionListener {
 
 		switch (command) {
 		case "TDOC_NEW":
+			tdocNew();
 			break;
 		case "TDOC_SAVE":
+			tdocSave();
+			break;
+		case "TDOC_UPDATE":
+			tdocUpdate();
+			break;
+		case "TDOC_CFG":
+			populateContrahents();
 			break;
 		case "TDOC_SAVEDOC":
+			tdocSaveDoc();
 			break;
 		case "TDOCS_NEW":
+			tdocsNew();
 			break;
 		case "TDOCS_SAVE":
+			tdocsSave();
 			break;
 		case "TDOCS_UPDATE":
+			tdocsUpdate();
 			break;
 		case "TABLE_EDIT":
+			editTable();
 			break;
+		}
+	}
+
+	private void populateContrahents() {
+		try {
+			tdoc.clearContrahents();
+
+			String cfg = tdoc.getSelectedCfg();
+			if(cfg.equals(""))
+				return;
+			ResultSet rs = model.executeQuerry("select doc_producent from t_cfg_doc where doc_nazwa ='" + cfg + "';");
+			String view = Utils.getFirstRecordFromRS(rs);
+			rs = model.executeQuerry("select  id_kon,kon_nazwa from " + view);
+			Map<String, Integer> mapProd = Utils.getIdNameMapFrom(rs);
+			List<String> producent = Utils.getNthColumnRecordsFrom(rs, 2);
+			rs = model.executeQuerry("select doc_dostawca from t_cfg_doc where doc_nazwa ='" + cfg + "';");
+			view = Utils.getFirstRecordFromRS(rs);
+			rs = model.executeQuerry("select  id_kon,kon_nazwa from " + view);
+			Map<String, Integer> mapDost = Utils.getIdNameMapFrom(rs);
+			List<String> dostawca = Utils.getNthColumnRecordsFrom(rs, 2);
+			rs = model.executeQuerry("select doc_wlasciciel from t_cfg_doc where doc_nazwa ='" + cfg + "';");
+			view = Utils.getFirstRecordFromRS(rs);
+			rs = model.executeQuerry("select id_kon,kon_nazwa from " + view);
+			Map<String, Integer> mapWlasc = Utils.getIdNameMapFrom(rs);
+			List<String> wlasciciel = Utils.getNthColumnRecordsFrom(rs, 2);
+
+			tdoc.populateContrahents(producent, dostawca, wlasciciel);
+			tdoc.setContrahMappings(mapProd, mapDost, mapWlasc);
+
+		} catch (SQLException e) {
+			Logger.e(Logger.getMethodName(), "populate contrahents failed " + e.getMessage());
+		}
+	}
+
+	private void tdocUpdate() {
+		try {
+			if (tdoc.inputValidated()) {
+				this.updateDoc();
+			}
+		} catch (SQLException e) {
+			Logger.e(Logger.getMethodName(), "update document failed " + e.getMessage());
+		}
+	}
+
+	private void tdocSaveDoc() {
+		try {
+			if (tdocSavedState == true)
+				model.executeUpdate("update t_doc set nr_doc ='" + tdoc.generateNrdoc() + "' where id_doc='" + t_doc_id + "';");
+		} catch (SQLException e) {
+			Logger.e(Logger.getMethodName(), "save document failed " + e.getMessage());
+		}
+	}
+
+	private void tdocSave() {
+		try {
+			if (tdoc.inputValidated()) {
+				tdoc.saveDoc();
+				tdoc.enterUpdateState();
+				tdocSavedState = true;
+				t_doc_id = this.getDocID();
+				tdocs.stateNew();
+				tdocs.clearComponents();
+				this.populateMagazyn();
+				this.populateTowar();
+				this.enablePanel(2);
+			}
+
+		} catch (SQLException e1) {
+			Logger.e(Logger.getMethodName(), "save failed " + e1.getMessage());
+		}
+
+	}
+
+	private void tdocNew() {
+		try {
+			tdoc.newDoc();
+			tdoc.clearContrahents();
+			table.clear();
+			tdocs.enterSaveState();
+			tdocs.clearComponents();
+			tdocs.clearTowarMagazyn();
+			this.disablePanel(2);
+			this.disablePanel(3);
+			tdocSavedState = false;
+		} catch (Exception e) {
+			Logger.e(Logger.getMethodName(), "new doc failed " + e.getMessage());
+		}
+	}
+
+	private void editTable() {
+		try {
+			String id = idList.get(table.getSelectedRow());
+			tdocs.writeTdocs(Integer.valueOf(id));
+			tdocs.setIdToUpdate(id);
+			tdocs.enterUpdateState();
+			tdocs.stateUpdateSave();
+			this.disablePanel(2);
+			this.enablePanel(3);
+		} catch (Exception e) {
+			Logger.e(Logger.getMethodName(), "edit failed " + e.getMessage());
+		}
+	}
+
+	private void tdocsUpdate() {
+		try {
+			if (tdocs.inputValidated()) {
+				tdocs.updateDocs(tdocs.getIdToUpdate());
+				tdocs.stateNew();
+				tdocs.enterSaveState();
+				this.refreshTable();
+				this.enablePanel(2);
+			}
+		} catch (Exception e) {
+			Logger.e(Logger.getMethodName(), "update failed " + e.getMessage());
+		}
+	}
+
+	private void tdocsNew() {
+		try {
+			tdocs.enterSaveState();
+			tdocs.clearComponents();
+			tdocs.setBtn("SAVE");
+			tdocs.stateUpdateSave();
+			this.disablePanel(2);
+		} catch (Exception e) {
+			Logger.e(Logger.getMethodName(), "new failed " + e.getMessage());
+		}
+	}
+
+	private void tdocsSave() {
+		try {
+			if (tdocs.inputValidated()) {
+				tdocs.saveDocs(this.t_doc_id);
+				tdocs.enterUpdateState();
+				tdocs.stateNew();
+				this.refreshTable();
+				this.enablePanel(2);
+			}
+		} catch (Exception e) {
+			Logger.e(Logger.getMethodName(), "save failed " + e.getMessage());
 		}
 	}
 
 	public String getTdocsId() {
 		String id = tdocs.getIdToUpdate();
 		return id;
+	}
+
+	public String getDocID() throws SQLException {
+		return Utils.getFirstRecordFromRS(model.executeQuerry("SELECT id_doc FROM t_doc WHERE id_doc = (SELECT MAX(id_doc) FROM t_doc);"));
 	}
 }
 
@@ -243,6 +448,10 @@ enum State {
 
 class JmTextField extends JTextField implements Access {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -364423020863064232L;
 	private boolean isAccessable = false;
 
 	public boolean isAccessable() {
@@ -307,6 +516,10 @@ class JmComboBox extends JComboBox implements Access {
 		this(false, null, null);
 	}
 
+	public void setMap(Map<String, Integer> map) {
+		this.map = map;
+	}
+
 	public JmComboBox(boolean isQuerry, Map<String, Integer> map, Model model) {
 		super();
 		this.isQuerry = isQuerry;
@@ -328,7 +541,8 @@ class JmComboBox extends JComboBox implements Access {
 
 	@Override
 	public void clear() {
-		this.setSelectedIndex(0);
+		if (this.getItemCount() > 0)
+			Utils.setComboPosition(this,0);
 	}
 
 }

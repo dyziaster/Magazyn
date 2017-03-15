@@ -3,6 +3,7 @@ package FrontEnd;
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ComponentListener;
 import java.util.List;
 
 import javax.swing.JButton;
@@ -14,8 +15,9 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumnModel;
+import javax.swing.table.TableModel;
 
-public class Ttable extends JPanel implements ActionListener, ListSelectionListener {
+public class Ttable extends JPanel implements ListSelectionListener {
 
 	private DefaultTableModel dtm;
 	private JTable table;
@@ -40,7 +42,7 @@ public class Ttable extends JPanel implements ActionListener, ListSelectionListe
 		this.ids = ids;
 
 		table = new JTable();
-		if(tableModel!= null)
+		if (tableModel != null)
 			setTableData(table, tableModel);
 		tcm = table.getColumnModel();
 
@@ -54,8 +56,8 @@ public class Ttable extends JPanel implements ActionListener, ListSelectionListe
 		scrollTable = new JScrollPane(table);
 
 		editBtn = new JButton("edit");
-		editBtn.addActionListener(this);
-		editBtn.setActionCommand("edit");
+		editBtn.addActionListener(document);
+		editBtn.setActionCommand("TABLE_EDIT");
 
 		panel.add(scrollTable, BorderLayout.CENTER);
 		panel.add(editBtn, BorderLayout.PAGE_END);
@@ -92,48 +94,35 @@ public class Ttable extends JPanel implements ActionListener, ListSelectionListe
 			return value.toString();
 	}
 
-	@Override
-	public void actionPerformed(ActionEvent arg0) {
-		selectedRow = table.getSelectedRow();
-		String id = ids.get(selectedRow);
-		document.enablePanel(3);
-		document.writeTdocs(Integer.valueOf(id));
-		document.setIdToUpdate(id);
-		document.setTdocsUpdate();
-		document.disablePanel(2);
-		document.setTdocsSaveUpdate();
-	//	document.turnOffNewBtn();
-
-	}
-
 	public void refreshTableModel(DefaultTableModel tableModel) {
 		setTableData(table, tableModel);
 		tableModel.fireTableDataChanged();
 	}
-	
-	public void setCursorPos(int x){
-		if(x<0)
+
+	public void setCursorPos(int x) {
+		if (x < 0)
 			return;
 		else
 			table.setRowSelectionInterval(x, x);
 	}
-	
-	public void disableTable(){
+
+	public void disableTable() {
 		editBtn.setEnabled(false);
 		table.setEnabled(false);
 	}
-	
-	public void enableTable(){
+
+	public void enableTable() {
 		editBtn.setEnabled(true);
 		table.setEnabled(true);
 	}
 
 	public void clear() {
-		table.setModel(new DefaultTableModel());
+		DefaultTableModel model = (DefaultTableModel) table.getModel();
+		model.setRowCount(0);
 	}
 
 	public void setTableIdMap(List<String> columnRecordsFrom) {
-		ids = columnRecordsFrom;		
+		ids = columnRecordsFrom;
 	}
 
 	@Override
@@ -141,6 +130,10 @@ public class Ttable extends JPanel implements ActionListener, ListSelectionListe
 		String id = ids.get(table.getSelectedRow());
 		document.writeTdocs(Integer.valueOf(id));
 		table.grabFocus();
+	}
+
+	public int getSelectedRow() {
+		return table.getSelectedRow();
 	}
 
 }
