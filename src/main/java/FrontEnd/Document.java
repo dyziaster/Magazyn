@@ -13,6 +13,7 @@ import javax.swing.table.TableColumnModel;
 import javax.swing.text.DefaultCaret;
 
 import com.itextpdf.text.pdf.qrcode.Mode;
+import com.mysql.cj.api.mysqla.result.Resultset;
 
 import Model.Logger;
 import Model.Model;
@@ -151,32 +152,20 @@ public class Document extends JFrame implements ActionListener {
 		}
 	}
 
-	public void setBtnTdocs(String name) {
-		tdocs.setBtn(name);
-	}
-
 	public void writeTdocs(int rowId) {
-		tdocs.writeTdocs(rowId);
+		try {
+			ResultSet rs = model.executeQuerry("select * from v_doc_s_sum where doc_id ='"+t_doc_id+"';");
+			table.setIlosc(Utils.getNthColumnRecordsFrom(rs, 2).get(0));
+			table.setNetto(Utils.getNthColumnRecordsFrom(rs, 3).get(0));
+			table.setBrutto(Utils.getNthColumnRecordsFrom(rs, 4).get(0));
+			tdocs.writeTdocs(rowId);
+		} catch (NumberFormatException | SQLException e) {
+			e.printStackTrace();
+		}
 	}
 
 	public String getT_doc_id() {
 		return t_doc_id;
-	}
-
-	public void setTdocsUpdate() {
-		tdocs.enterUpdateState();
-	}
-
-	public void setIdToUpdate(String id) {
-		tdocs.setIdToUpdate(id);
-	}
-
-	public void clearTdocs() {
-		tdocs.clearComponents();
-	}
-
-	public void turnOffNewBtn() {
-		tdocs.setNewBtnEnabled(false);
 	}
 
 	private void populateTowar() throws SQLException {
@@ -237,26 +226,6 @@ public class Document extends JFrame implements ActionListener {
 		model.executeUpdate(sb.toString());
 	}
 
-	public void clearTable() {
-		table.clear();
-	}
-
-	public void setTdocsNew() {
-		tdocs.enterSaveState();
-	}
-
-	public void setTdocsSaveUpdate() {
-		tdocs.stateUpdateSave();
-	}
-
-	public void setTdocsNewState() {
-		tdocs.stateNew();
-	}
-
-	public void manage(String action) {
-
-	}
-
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		String command = e.getActionCommand();
@@ -286,10 +255,35 @@ public class Document extends JFrame implements ActionListener {
 		case "TDOCS_UPDATE":
 			tdocsUpdate();
 			break;
+		case "TDOCS_DELETE":
+			tdocsDelete();
+			break;
 		case "TABLE_EDIT":
 			editTable();
 			break;
 		}
+	}
+
+	private void tdocsDelete() {
+		try {
+			String id = idList.get(table.getSelectedRow());
+			model.executeUpdate("update t_doc_s set doc_s_delete = 1 where id ='" + id + "';");
+			this.refreshTable();
+		} catch (Exception e) {
+			Logger.e(Logger.getMethodName(), "delete failed " + e.getMessage());
+		}
+	}
+
+	private void stateUpdateSaveTdocs() {
+		this.enablePanel(3);
+		table.setNewBtnEnabled(false);
+		table.setDelBtnEnabled(false);
+	}
+
+	private void stateNewTdocs() {
+		this.disablePanel(3);
+		table.setNewBtnEnabled(true);
+		table.setDelBtnEnabled(true);
 	}
 
 	private void populateContrahents() {
@@ -297,7 +291,7 @@ public class Document extends JFrame implements ActionListener {
 			tdoc.clearContrahents();
 
 			String cfg = tdoc.getSelectedCfg();
-			if(cfg.equals(""))
+			if (cfg.equals(""))
 				return;
 			ResultSet rs = model.executeQuerry("select doc_producent from t_cfg_doc where doc_nazwa ='" + cfg + "';");
 			String view = Utils.getFirstRecordFromRS(rs);
@@ -335,8 +329,10 @@ public class Document extends JFrame implements ActionListener {
 
 	private void tdocSaveDoc() {
 		try {
-			if (tdocSavedState == true)
+			if (tdocSavedState == true) {
 				model.executeUpdate("update t_doc set nr_doc ='" + tdoc.generateNrdoc() + "' where id_doc='" + t_doc_id + "';");
+				tdoc.setSaveDocEnabled(false);
+			}
 		} catch (SQLException e) {
 			Logger.e(Logger.getMethodName(), "save document failed " + e.getMessage());
 		}
@@ -347,13 +343,16 @@ public class Document extends JFrame implements ActionListener {
 			if (tdoc.inputValidated()) {
 				tdoc.saveDoc();
 				tdoc.enterUpdateState();
+				tdocs.clearComponents();
 				tdocSavedState = true;
 				t_doc_id = this.getDocID();
-				tdocs.stateNew();
-				tdocs.clearComponents();
+				this.stateNewTdocs();
 				this.populateMagazyn();
 				this.populateTowar();
 				this.enablePanel(2);
+				table.setDelBtnEnabled(false);
+				table.setEditBtnEnabled(false);
+				
 			}
 
 		} catch (SQLException e1) {
@@ -374,6 +373,7 @@ public class Document extends JFrame implements ActionListener {
 			this.disablePanel(3);
 			tdocSavedState = false;
 		} catch (Exception e) {
+			e.printStackTrace();
 			Logger.e(Logger.getMethodName(), "new doc failed " + e.getMessage());
 		}
 	}
@@ -384,7 +384,7 @@ public class Document extends JFrame implements ActionListener {
 			tdocs.writeTdocs(Integer.valueOf(id));
 			tdocs.setIdToUpdate(id);
 			tdocs.enterUpdateState();
-			tdocs.stateUpdateSave();
+			this.stateUpdateSaveTdocs();
 			this.disablePanel(2);
 			this.enablePanel(3);
 		} catch (Exception e) {
@@ -396,7 +396,7 @@ public class Document extends JFrame implements ActionListener {
 		try {
 			if (tdocs.inputValidated()) {
 				tdocs.updateDocs(tdocs.getIdToUpdate());
-				tdocs.stateNew();
+				this.stateNewTdocs();
 				tdocs.enterSaveState();
 				this.refreshTable();
 				this.enablePanel(2);
@@ -411,7 +411,7 @@ public class Document extends JFrame implements ActionListener {
 			tdocs.enterSaveState();
 			tdocs.clearComponents();
 			tdocs.setBtn("SAVE");
-			tdocs.stateUpdateSave();
+			this.stateUpdateSaveTdocs();
 			this.disablePanel(2);
 		} catch (Exception e) {
 			Logger.e(Logger.getMethodName(), "new failed " + e.getMessage());
@@ -423,7 +423,7 @@ public class Document extends JFrame implements ActionListener {
 			if (tdocs.inputValidated()) {
 				tdocs.saveDocs(this.t_doc_id);
 				tdocs.enterUpdateState();
-				tdocs.stateNew();
+				this.stateNewTdocs();
 				this.refreshTable();
 				this.enablePanel(2);
 			}
@@ -542,7 +542,7 @@ class JmComboBox extends JComboBox implements Access {
 	@Override
 	public void clear() {
 		if (this.getItemCount() > 0)
-			Utils.setComboPosition(this,0);
+			Utils.setComboPosition(this, 0);
 	}
 
 }

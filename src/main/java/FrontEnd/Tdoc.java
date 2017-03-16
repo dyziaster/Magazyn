@@ -433,6 +433,7 @@ public class Tdoc extends JPanel {
 		btnCfg.setEnabled(true);
 		textNrDoc.setText("");
 		btnCfg.clear();
+		saveDocBtn.setEnabled(true);
 	}
 
 	public String getSelectedCfg() {
@@ -449,6 +450,10 @@ public class Tdoc extends JPanel {
 		btnDostawca.setMap(mapDost);
 		btnProducent.setMap(mapProd);
 		btnWlasciciel.setMap(mapWlasc);
+	}
+
+	public void setSaveDocEnabled(boolean b) {
+		saveDocBtn.setEnabled(false);
 	}
 
 }

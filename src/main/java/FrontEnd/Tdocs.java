@@ -64,6 +64,7 @@ public class Tdocs extends JPanel {
 	private UtilDateModel m;
 	private JButton newBtn;
 	private JmTextField trwalosc;
+	private JmTextField uwagi;
 
 	public Tdocs() {
 		this(null, null);
@@ -178,21 +179,21 @@ public class Tdocs extends JPanel {
 			gbc_button.fill = GridBagConstraints.HORIZONTAL;
 			gbc_button.gridx = 3;
 			gbc_button.gridy = 7;
-			panelDocs.add(newBtn, gbc_button);
-			// newBtn.addActionListener(new ActionListener() {
-			//
-			// @Override
-			// public void actionPerformed(ActionEvent arg0) {
-			//
-			// savedDocs = false;
-			// clearComponents();
-			// setBtn("SAVE");
-			// stateUpdateSave();
-			// document.disablePanel(2);
-			// }
-			// });
-			newBtn.setActionCommand("TDOCS_NEW");
-			newBtn.addActionListener(document);
+//			panelDocs.add(newBtn, gbc_button);
+//			// newBtn.addActionListener(new ActionListener() {
+//			//
+//			// @Override
+//			// public void actionPerformed(ActionEvent arg0) {
+//			//
+//			// savedDocs = false;
+//			// clearComponents();
+//			// setBtn("SAVE");
+//			// stateUpdateSave();
+//			// document.disablePanel(2);
+//			// }
+//			// });
+//			newBtn.setActionCommand("TDOCS_NEW");
+//			newBtn.addActionListener(document);
 
 			m = new UtilDateModel();
 			m.setValue(new Date());
@@ -226,6 +227,9 @@ public class Tdocs extends JPanel {
 			kod1 = new JmTextField(panelDocs, "doc_s_kod_kreskowy_1", 1, 3, null, true);
 			kod2 = new JmTextField(panelDocs, "doc_s_kod_kreskowy_2", 1, 5, null, true);
 			trwalosc = new JmTextField(panelDocs, "doc_s_data_trwalosci", 1, 7, null, true);
+			//uwagi = new JmTextField(panelDocs, "doc_s_uwagi", 4, 3, null, true);
+			uwagi = new JmTextField(panelDocs, "doc_s_uwagi", 4, 3, 2, 1, 1, null, true);
+			
 
 			FocusListener fl = new TextFocusListener();
 			wagaNetto = new JmTextField(panelDocs, "doc_s_waga_netto_op", 3, 1, fl, true);// A
@@ -243,6 +247,7 @@ public class Tdocs extends JPanel {
 			new JmLabel(panelDocs, "kod kreskowy 1", 1, 2);
 			new JmLabel(panelDocs, "data polowu", 2, 2);
 			new JmLabel(panelDocs, "waga ryby", 3, 2);
+			new JmLabel(panelDocs, "uwagi", 4, 2);
 			new JmLabel(panelDocs, "Nr partii zew", 0, 4);
 			new JmLabel(panelDocs, "kod kreskowy 2", 1, 4);
 			new JmLabel(panelDocs, "data zamrozenia", 2, 4);
@@ -303,10 +308,9 @@ public class Tdocs extends JPanel {
 		String waga = wagaRyby.getOutput();
 		String brutto = wagaBrutto.getOutput();
 		String szt = iloscSzt.getOutput();
+		String uwag = uwagi.getOutput();
 		String kod1 = this.kod1.getOutput();
 		String kod2 = this.kod2.getOutput();
-		String uwag = "uwaga";
-
 		List<String> values = Arrays.asList(docId, delete, view, magId, partiaZew, partiaWew, towId, dataPolowu, dataZamrozenia, dataProdukcji, dataTrwalosci, netto, waga, brutto, szt, kod1, kod2, uwag);
 		String querry = Utils.getSqlValuesStringFromList(values, "t_doc_s", columns);
 		System.out.println("size v=" + values.size() + " size col=" + columns.size());
@@ -347,12 +351,12 @@ public class Tdocs extends JPanel {
 		savedDocs = false;
 	}
 
-	public void stateNew() {
+	private void stateNew() {
 		this.disablePanelDocs();
 		newBtn.setEnabled(true);
 	}
 
-	public void stateUpdateSave() {
+	private void stateUpdateSave() {
 		this.enablePanelDocs();
 		newBtn.setEnabled(false);
 	}
@@ -468,10 +472,9 @@ public class Tdocs extends JPanel {
 		return true;
 	}
 
-	public void writeTdocs(int rowId) {
+	public void writeTdocs(int rowId) throws NumberFormatException, SQLException {
 
-		try {
-
+		
 			ResultSet rs = model.executeQuerry("select * from t_doc_s where id = '" + rowId + "';");
 			ResultSet rs1 = model.executeQuerry("select Towar from v_towar_show where id_tow = (select doc_s_nazwa_tow_id from t_doc_s where id = '" + rowId + "');");
 			ResultSet rs2 = model.executeQuerry("select magazyn from v_magazyn where id_ = (select doc_s_magazyn_id from t_doc_s where id = '" + rowId + "');");
@@ -486,6 +489,7 @@ public class Tdocs extends JPanel {
 				kod1.setText(rs.getString(kod1.getName()));
 				kod2.setText(rs.getString(kod2.getName()));
 				iloscSzt.setText(rs.getString(iloscSzt.getName()));
+				uwagi.setText(rs.getString(uwagi.getName()));
 
 				String[] date = rs.getString("doc_s_data_polowu").split("-");
 				int y = Integer.valueOf(date[0]);
@@ -507,13 +511,10 @@ public class Tdocs extends JPanel {
 				magazyn.setSelectedItem(Utils.getFirstRecordFromRS(rs2));
 
 			}
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+
 	}
 
-	public void setNewBtnEnabled(boolean b) {
+	private void setNewBtnEnabled(boolean b) {
 		newBtn.setEnabled(false);
 	}
 

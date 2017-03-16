@@ -1,12 +1,15 @@
 package FrontEnd;
 
 import java.awt.BorderLayout;
+import java.awt.GridBagConstraints;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentListener;
 import java.util.List;
 
 import javax.swing.JButton;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
@@ -28,6 +31,15 @@ public class Ttable extends JPanel implements ListSelectionListener {
 	private Document document;
 	private List<String> ids;
 	private int selectedRow;
+	private JPanel panelButtons;
+	private JButton delBtn;
+	private JButton newBtn;
+	private JLabel labelIlosc;
+	private JLabel labelNetto;
+	private JLabel ilosc;
+	private JLabel netto;
+	private JLabel labelBrutto;
+	private JLabel brutto;
 
 	public Ttable() {
 		this(null, null, null);
@@ -37,6 +49,7 @@ public class Ttable extends JPanel implements ListSelectionListener {
 	public Ttable(Document document, DefaultTableModel tableModel, List<String> ids) {
 
 		panel = this;
+		panelButtons = new JPanel();
 		panel.setLayout(new BorderLayout());
 		this.document = document;
 		this.ids = ids;
@@ -55,12 +68,38 @@ public class Ttable extends JPanel implements ListSelectionListener {
 		table.getTableHeader().setReorderingAllowed(false);
 		scrollTable = new JScrollPane(table);
 
+		labelIlosc = new JLabel("ilosc op");
+		ilosc = new JLabel("");
+		labelNetto = new JLabel("netto");
+		netto = new JLabel("");
+		labelBrutto = new JLabel("brutto");
+		brutto = new JLabel("");
+		
 		editBtn = new JButton("edit");
 		editBtn.addActionListener(document);
 		editBtn.setActionCommand("TABLE_EDIT");
+		
+		delBtn = new JButton("delete");
+		delBtn.addActionListener(document);
+		delBtn.setActionCommand("TDOCS_DELETE");
+		
+
+		newBtn = new JButton("New");
+		newBtn.setActionCommand("TDOCS_NEW");
+		newBtn.addActionListener(document);
+
+		panelButtons.add(labelIlosc);
+		panelButtons.add(ilosc);
+		panelButtons.add(labelNetto);
+		panelButtons.add(netto);
+		panelButtons.add(labelBrutto);
+		panelButtons.add(brutto);
+		panelButtons.add(delBtn);
+		panelButtons.add(editBtn);
+		panelButtons.add(newBtn);
 
 		panel.add(scrollTable, BorderLayout.CENTER);
-		panel.add(editBtn, BorderLayout.PAGE_END);
+		panel.add(panelButtons, BorderLayout.PAGE_END);
 	}
 
 	public void setTableData(JTable table, DefaultTableModel model) {
@@ -108,17 +147,24 @@ public class Ttable extends JPanel implements ListSelectionListener {
 
 	public void disableTable() {
 		editBtn.setEnabled(false);
+		delBtn.setEnabled(false);
+		newBtn.setEnabled(false);
 		table.setEnabled(false);
 	}
 
 	public void enableTable() {
+		delBtn.setEnabled(true);
 		editBtn.setEnabled(true);
+		newBtn.setEnabled(true);
 		table.setEnabled(true);
 	}
 
 	public void clear() {
 		DefaultTableModel model = (DefaultTableModel) table.getModel();
 		model.setRowCount(0);
+		ilosc.setText("");
+		netto.setText("");
+		brutto.setText("");
 	}
 
 	public void setTableIdMap(List<String> columnRecordsFrom) {
@@ -127,13 +173,39 @@ public class Ttable extends JPanel implements ListSelectionListener {
 
 	@Override
 	public void valueChanged(ListSelectionEvent arg0) {
-		String id = ids.get(table.getSelectedRow());
+		int row = table.getSelectedRow();
+		if(row < 0)
+			return;
+		String id = ids.get(row);
 		document.writeTdocs(Integer.valueOf(id));
 		table.grabFocus();
+	}
+	
+	public void setNewBtnEnabled(boolean b) {
+		newBtn.setEnabled(b);
+	}
+	
+	public void setDelBtnEnabled(boolean b) {
+		delBtn.setEnabled(b);
 	}
 
 	public int getSelectedRow() {
 		return table.getSelectedRow();
 	}
+
+	public void setEditBtnEnabled(boolean b) {
+		editBtn.setEnabled(b);		
+	}
+	
+	public void setIlosc(String quantity){
+		ilosc.setText(quantity);
+	}
+	public void setNetto(String quantity){
+		netto.setText(quantity);
+	}
+	public void setBrutto(String quantity){
+		brutto.setText(quantity);
+	}
+	
 
 }
