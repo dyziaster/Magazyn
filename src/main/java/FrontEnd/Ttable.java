@@ -1,6 +1,8 @@
 package FrontEnd;
 
 import java.awt.BorderLayout;
+import java.awt.ComponentOrientation;
+import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
@@ -49,7 +51,8 @@ public class Ttable extends JPanel implements ListSelectionListener {
 	public Ttable(Document document, DefaultTableModel tableModel, List<String> ids) {
 
 		panel = this;
-		panelButtons = new JPanel();
+		panelButtons = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+		
 		panel.setLayout(new BorderLayout());
 		this.document = document;
 		this.ids = ids;

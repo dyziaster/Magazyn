@@ -2,6 +2,7 @@ package FrontEnd;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -17,14 +18,17 @@ import java.util.Map;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumnModel;
-
 import Model.Logger;
 import Model.Model;
 import Model.Utils;
@@ -37,7 +41,7 @@ public class Tdoc extends JPanel {
 	 * 
 	 */
 	private static final long serialVersionUID = 1791439212865423973L;
-	private JmTextField textUwagi;
+	private JmTextArea textUwagi;
 	private JmTextField textNrSamochod;
 	private JmTextField textNrKontener;
 	private JTextField textField_5;
@@ -61,6 +65,7 @@ public class Tdoc extends JPanel {
 	private Map<String, Integer> mapCfg;
 	private JButton saveDocBtn;
 	private ResultSet rsCfg;
+	private JmComboBox btnOdbiorca;
 
 	public String getT_doc_id() {
 		return t_doc_id;
@@ -127,14 +132,33 @@ public class Tdoc extends JPanel {
 		panel.add(datePickerDostawa, gbc_textField_5);
 		textField_5.setColumns(10);
 
-		textUwagi = new JmTextField();
+		textUwagi = new JmTextArea();
 		GridBagConstraints gbc_textUwagi = new GridBagConstraints();
 		gbc_textUwagi.insets = new Insets(0, 0, 5, 0);
 		gbc_textUwagi.fill = GridBagConstraints.HORIZONTAL;
 		gbc_textUwagi.gridx = 5;
 		gbc_textUwagi.gridy = 2;
+		gbc_textUwagi.gridheight = 2;
 		panel.add(textUwagi, gbc_textUwagi);
-		textUwagi.setColumns(10);
+		//textUwagi.setColumns(10);
+		textUwagi.setRows(3);
+		textUwagi.getDocument().addDocumentListener(new DocumentListener() {
+			  public void changedUpdate(DocumentEvent e) {
+				    check();
+				  }
+				  public void removeUpdate(DocumentEvent e) {
+				    check();
+				  }
+				  public void insertUpdate(DocumentEvent e) {
+				    check();
+				  }
+
+				  public void check() {
+				     if (textUwagi.getLineCount()>3){//make sure no more than 4 lines
+				       JOptionPane.showMessageDialog(null, "Error: Cant have more than 4 lines");
+				     }
+				  }
+				});
 
 		btnProducent = new JmComboBox(true, null, model);
 		GridBagConstraints gbc_btnProducent = new GridBagConstraints();
@@ -151,12 +175,22 @@ public class Tdoc extends JPanel {
 		gbc_btnDostawca.gridx = 3;
 		gbc_btnDostawca.gridy = 3;
 		panel.add(btnDostawca, gbc_btnDostawca);
+		
+
+		btnOdbiorca = new JmComboBox(true, null, model);
+		GridBagConstraints gbc_btnOdbiorca = new GridBagConstraints();
+		gbc_btnOdbiorca.insets = new Insets(0, 0, 0, 5);
+		gbc_btnOdbiorca.fill = GridBagConstraints.HORIZONTAL;
+		gbc_btnOdbiorca.gridx = 1;
+		gbc_btnOdbiorca.gridy = 4;
+		panel.add(btnOdbiorca, gbc_btnOdbiorca);
 
 		btnWlasciciel = new JmComboBox(true, null, model);
 		GridBagConstraints gbc_btnWlasciciel = new GridBagConstraints();
+		gbc_btnWlasciciel.insets = new Insets(0, 0, 0, 5);
 		gbc_btnWlasciciel.fill = GridBagConstraints.HORIZONTAL;
-		gbc_btnWlasciciel.gridx = 5;
-		gbc_btnWlasciciel.gridy = 3;
+		gbc_btnWlasciciel.gridx = 3;
+		gbc_btnWlasciciel.gridy = 4;
 		panel.add(btnWlasciciel, gbc_btnWlasciciel);
 
 		mapCfg = Utils.getIdNameMapFrom(rsCfg);
@@ -175,7 +209,7 @@ public class Tdoc extends JPanel {
 		GridBagConstraints gbc_button = new GridBagConstraints();
 		gbc_button.insets = new Insets(5, 0, 5, 0);
 		gbc_button.fill = GridBagConstraints.HORIZONTAL;
-		gbc_button.gridx = 2;
+		gbc_button.gridx = 4;
 		gbc_button.gridy = 4;
 		panel.add(saveBtn, gbc_button);
 
@@ -193,7 +227,8 @@ public class Tdoc extends JPanel {
 		saveDocBtn.addActionListener(document);
 
 		newBtn = new JButton("New");
-		gbc_button.gridx = 0;
+		gbc_button.gridx = 4;
+		gbc_button.gridy = 3;
 		panel.add(newBtn, gbc_button);
 
 		newBtn.setActionCommand("TDOC_NEW");
@@ -215,6 +250,7 @@ public class Tdoc extends JPanel {
 		btnCfg.setName("doc_cfg_doc_id");
 		btnDostawca.setName("doc_dostawca_id");
 		btnProducent.setName("doc_producent_id");
+		btnOdbiorca.setName("doc_odbiorca_cfg");
 		btnWlasciciel.setName("doc_wlasciciel_id");
 		textNrKontener.setName("doc_nr_kontenera");
 		textNrSamochod.setName("doc_nr_samochodu");
@@ -227,6 +263,7 @@ public class Tdoc extends JPanel {
 	private void addLabels() {
 
 		JLabel lblNewLabel = new JLabel("CDS Europe sp. z o.o.");
+		lblNewLabel.setFont(new Font("Serif", Font.PLAIN,20));
 		GridBagConstraints gbc_lblNewLabel = new GridBagConstraints();
 		gbc_lblNewLabel.gridheight = 2;
 		gbc_lblNewLabel.gridwidth = 2;
@@ -236,6 +273,7 @@ public class Tdoc extends JPanel {
 		panel.add(lblNewLabel, gbc_lblNewLabel);
 
 		JLabel lblNewLabel_2 = new JLabel("PZ");
+		lblNewLabel_2.setFont(new Font("Serif", Font.PLAIN,20));
 		GridBagConstraints gbc_lblNewLabel_2 = new GridBagConstraints();
 		//gbc_lblNewLabel_2.gridheight = 2;
 		gbc_lblNewLabel_2.insets = new Insets(0, 0, 5, 5);
@@ -307,6 +345,15 @@ public class Tdoc extends JPanel {
 		gbc_lblNewLabel_1.gridy = 3;
 		panel.add(lblNewLabel_1, gbc_lblNewLabel_1);
 
+
+		JLabel lblNewLabel_11 = new JLabel("Odbiorca:");
+		GridBagConstraints gbc_lblNewLabel_11 = new GridBagConstraints();
+		gbc_lblNewLabel_11.anchor = GridBagConstraints.EAST;
+		gbc_lblNewLabel_11.insets = new Insets(0, 0, 0, 5);
+		gbc_lblNewLabel_11.gridx = 0;
+		gbc_lblNewLabel_11.gridy = 4;
+		panel.add(lblNewLabel_11, gbc_lblNewLabel_11);
+		
 		JLabel lblNewLabel_6 = new JLabel("Dostawca");
 		GridBagConstraints gbc_lblNewLabel_6 = new GridBagConstraints();
 		gbc_lblNewLabel_6.anchor = GridBagConstraints.EAST;
@@ -319,8 +366,8 @@ public class Tdoc extends JPanel {
 		GridBagConstraints gbc_lblNewLabel_10 = new GridBagConstraints();
 		gbc_lblNewLabel_10.insets = new Insets(0, 0, 0, 5);
 		gbc_lblNewLabel_10.anchor = GridBagConstraints.EAST;
-		gbc_lblNewLabel_10.gridx = 4;
-		gbc_lblNewLabel_10.gridy = 3;
+		gbc_lblNewLabel_10.gridx = 2;
+		gbc_lblNewLabel_10.gridy = 4;
 		panel.add(lblNewLabel_10, gbc_lblNewLabel_10);
 
 	}
@@ -375,11 +422,12 @@ public class Tdoc extends JPanel {
 
 	public void saveDoc() throws SQLException {
 
-		String nrDoc, producent, dostawca, wlasciciel, nrKontener, nrSamochod, uwagi = "";
+		String nrDoc, producent, dostawca, odbiorca, wlasciciel, nrKontener, nrSamochod, uwagi = "";
 		String dataDoc, dataDostawy = "";
 		producent = btnProducent.getOutput();
 		dostawca = btnDostawca.getOutput();
 		wlasciciel = btnWlasciciel.getOutput();
+		odbiorca = btnOdbiorca.getOutput();
 		nrKontener = textNrKontener.getOutput();
 		nrSamochod = textNrSamochod.getOutput();
 		uwagi = textUwagi.getOutput();
@@ -390,11 +438,11 @@ public class Tdoc extends JPanel {
 
 		String docDelete = "0";
 		String docView = "1";
-		String docOdbiorcaId = "1"; // firma Dareks
+		//String docOdbiorcaId = "1"; // firma Dareks
 
 		String cfgDoc = String.valueOf(mapCfg.get(btnCfg.getSelectedItem()));
 
-		List<String> list = Arrays.asList(nrDoc, docDelete, docView, dataDostawy, dataDoc, nrKontener, nrSamochod, cfgDoc, producent, dostawca, wlasciciel, docOdbiorcaId, uwagi);
+		List<String> list = Arrays.asList(nrDoc, docDelete, docView, dataDostawy, dataDoc, nrKontener, nrSamochod, cfgDoc, producent, dostawca, wlasciciel, odbiorca, uwagi);
 		List<String> list2 = Utils.getColumnNamesWithoutID(model.getColumnListFrom("t_doc"));
 		String querry2 = Utils.getSqlValuesStringFromList(list, "t_doc", list2);
 
@@ -402,10 +450,11 @@ public class Tdoc extends JPanel {
 
 	}
 
-	public void populateContrahents(List<String> producent,List<String> dostawca,List<String> wlasciciel) {
+	public void populateContrahents(List<String> producent,List<String> dostawca,List<String> wlasciciel,List<String> odbiorca) {
 		Utils.addToComboBox(btnDostawca, dostawca);
 		Utils.addToComboBox(btnProducent, producent);
 		Utils.addToComboBox(btnWlasciciel, wlasciciel);
+		Utils.addToComboBox(btnOdbiorca, odbiorca);
 	}
 
 	private void getRSForCombobox() {
@@ -444,12 +493,14 @@ public class Tdoc extends JPanel {
 		Utils.removeAllFromComboBox(btnDostawca);
 		Utils.removeAllFromComboBox(btnProducent);
 		Utils.removeAllFromComboBox(btnWlasciciel);	
+		Utils.removeAllFromComboBox(btnOdbiorca);	
 	}
 
-	public void setContrahMappings(Map<String, Integer> mapProd, Map<String, Integer> mapDost, Map<String, Integer> mapWlasc) {
+	public void setContrahMappings(Map<String, Integer> mapProd, Map<String, Integer> mapDost, Map<String, Integer> mapWlasc, Map<String, Integer> mapOdb) {
 		btnDostawca.setMap(mapDost);
 		btnProducent.setMap(mapProd);
 		btnWlasciciel.setMap(mapWlasc);
+		btnOdbiorca.setMap(mapOdb);
 	}
 
 	public void setSaveDocEnabled(boolean b) {

@@ -1,6 +1,8 @@
 package Model;
 
 import java.awt.event.ActionListener;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
@@ -294,6 +296,14 @@ public class Utils {
 		if (list.get(0).contains("id_")) // Removing id table from adding to it
 			list.remove(0);
 		return list;
+	}
+	
+	public static double round(double value, int places) {
+	    if (places < 0) throw new IllegalArgumentException();
+
+	    BigDecimal bd = new BigDecimal(value);
+	    bd = bd.setScale(places, RoundingMode.HALF_UP);
+	    return bd.doubleValue();
 	}
 
 	public static void setComboPosition(JComboBox<Object> cb,int position){

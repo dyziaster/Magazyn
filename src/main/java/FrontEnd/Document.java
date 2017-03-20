@@ -2,6 +2,7 @@ package FrontEnd;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.EventQueue;
 
 import javax.swing.JFrame;
@@ -63,6 +64,7 @@ public class Document extends JFrame implements ActionListener {
 	private boolean tdocSavedState = false;
 	private boolean tdocsSavedState = false;
 	private String t_doc_id;
+	private Map<String, Integer> mapTowar;
 
 	/**
 	 * Launch the application.
@@ -93,7 +95,8 @@ public class Document extends JFrame implements ActionListener {
 		this.model = model;
 		this.setTitle("Document");
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-		setBounds(100, 100, 738, 474);
+		//setBounds(100, 100, 1000, 600);
+		setMinimumSize(new Dimension(1000, 600));
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
@@ -154,10 +157,6 @@ public class Document extends JFrame implements ActionListener {
 
 	public void writeTdocs(int rowId) {
 		try {
-			ResultSet rs = model.executeQuerry("select * from v_doc_s_sum where doc_id ='"+t_doc_id+"';");
-			table.setIlosc(Utils.getNthColumnRecordsFrom(rs, 2).get(0));
-			table.setNetto(Utils.getNthColumnRecordsFrom(rs, 3).get(0));
-			table.setBrutto(Utils.getNthColumnRecordsFrom(rs, 4).get(0));
 			tdocs.writeTdocs(rowId);
 		} catch (NumberFormatException | SQLException e) {
 			e.printStackTrace();
@@ -172,9 +171,11 @@ public class Document extends JFrame implements ActionListener {
 		String cfg = tdoc.getSelectedCfg();
 		ResultSet rs = model.executeQuerry("select doc_view_lista_tow from t_cfg_doc where doc_nazwa ='" + cfg + "';");
 		String view = Utils.getFirstRecordFromRS(rs);
-		rs = model.executeQuerry("select Towar from " + view);
-		List<String> list = Utils.getNthColumnRecordsFrom(rs, 1);
+		rs = model.executeQuerry("select id_tow,Towar from " + view);
+		mapTowar = Utils.getIdNameMapFrom(rs);
+		List<String> list = Utils.getNthColumnRecordsFrom(rs, 2);
 		tdocs.addToTowar(list);
+		tdocs.setTowarMap(mapTowar);
 
 	}
 
@@ -182,9 +183,11 @@ public class Document extends JFrame implements ActionListener {
 		String cfg = tdoc.getSelectedCfg();
 		ResultSet rs = model.executeQuerry("select doc_view_lista_magazynow from t_cfg_doc where doc_nazwa ='" + cfg + "';");
 		String view = Utils.getFirstRecordFromRS(rs);
-		rs = model.executeQuerry("select magazyn from " + view);
-		List<String> list = Utils.getNthColumnRecordsFrom(rs, 1);
+		rs = model.executeQuerry("select id_,magazyn from " + view);
+		Map<String, Integer> mapMag = Utils.getIdNameMapFrom(rs);
+		List<String> list = Utils.getNthColumnRecordsFrom(rs, 2);
 		tdocs.addToMagazyn(list);
+		tdocs.setMagazynMap(mapMag);
 	}
 
 	public void refreshTable() throws SQLException {
@@ -198,6 +201,19 @@ public class Document extends JFrame implements ActionListener {
 		for (int x = 0; x < idList.size(); x++) {
 			if (idList.get(x).equals(this.getTdocsId()))
 				table.setCursorPos(x);
+		}
+
+		rs = model.executeQuerry("select * from v_doc_s_sum where doc_id ='" + t_doc_id + "';");
+		if (rs.isBeforeFirst()) {
+			table.setIlosc(Utils.getNthColumnRecordsFrom(rs, 2).get(0));
+			table.setNetto(Utils.getNthColumnRecordsFrom(rs, 3).get(0));
+			table.setBrutto(Utils.getNthColumnRecordsFrom(rs, 4).get(0));
+		}
+		else{
+			table.setIlosc("");
+			table.setBrutto("");
+			table.setNetto("");
+			tdocs.clearComponents();
 		}
 	}
 
@@ -228,6 +244,7 @@ public class Document extends JFrame implements ActionListener {
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
+		Object source = e.getSource();
 		String command = e.getActionCommand();
 
 		switch (command) {
@@ -258,9 +275,39 @@ public class Document extends JFrame implements ActionListener {
 		case "TDOCS_DELETE":
 			tdocsDelete();
 			break;
+		case "TDOCS_TOWAR":
+			tdocsTowar(source);
+			break;
 		case "TABLE_EDIT":
 			editTable();
 			break;
+		}
+	}
+
+	private void tdocsTowar(Object source) {
+		String wagaRyby = "";
+		String netto = "";
+		String brutto = "";
+		String iloscSzt = "";
+		try {
+			JComboBox cbox = (JComboBox) source;
+			String item = cbox.getSelectedItem().toString();
+			if (item.equals("")) {
+				tdocs.resetWeights();
+				return;
+			}
+			int id = mapTowar.get(item);
+			ResultSet rs = model.executeQuerry("select * from v_towar_show where id_tow=" + id + ";");
+
+			while (rs.next()) {
+				wagaRyby = (rs.getString("tow_waga_ryby"));
+				netto = (rs.getString("tow_waga_netto"));
+				brutto = (rs.getString("tow_waga_brutto"));
+			}
+
+			tdocs.setWeights(wagaRyby, netto, brutto);
+		} catch (SQLException e1) {
+			Logger.e(Logger.getMethodName(), "Wybor towaru failed" + e1.getMessage());
 		}
 	}
 
@@ -295,22 +342,33 @@ public class Document extends JFrame implements ActionListener {
 				return;
 			ResultSet rs = model.executeQuerry("select doc_producent from t_cfg_doc where doc_nazwa ='" + cfg + "';");
 			String view = Utils.getFirstRecordFromRS(rs);
+			
 			rs = model.executeQuerry("select  id_kon,kon_nazwa from " + view);
 			Map<String, Integer> mapProd = Utils.getIdNameMapFrom(rs);
 			List<String> producent = Utils.getNthColumnRecordsFrom(rs, 2);
+			
 			rs = model.executeQuerry("select doc_dostawca from t_cfg_doc where doc_nazwa ='" + cfg + "';");
 			view = Utils.getFirstRecordFromRS(rs);
+			
 			rs = model.executeQuerry("select  id_kon,kon_nazwa from " + view);
 			Map<String, Integer> mapDost = Utils.getIdNameMapFrom(rs);
 			List<String> dostawca = Utils.getNthColumnRecordsFrom(rs, 2);
+			
 			rs = model.executeQuerry("select doc_wlasciciel from t_cfg_doc where doc_nazwa ='" + cfg + "';");
 			view = Utils.getFirstRecordFromRS(rs);
 			rs = model.executeQuerry("select id_kon,kon_nazwa from " + view);
 			Map<String, Integer> mapWlasc = Utils.getIdNameMapFrom(rs);
 			List<String> wlasciciel = Utils.getNthColumnRecordsFrom(rs, 2);
 
-			tdoc.populateContrahents(producent, dostawca, wlasciciel);
-			tdoc.setContrahMappings(mapProd, mapDost, mapWlasc);
+			rs = model.executeQuerry("select doc_odbiorca from t_cfg_doc where doc_nazwa ='" + cfg + "';");
+			view = Utils.getFirstRecordFromRS(rs);
+			rs = model.executeQuerry("select id_kon,kon_nazwa from " + view);
+			Map<String, Integer> mapOdb = Utils.getIdNameMapFrom(rs);
+			List<String> odbiorca = Utils.getNthColumnRecordsFrom(rs, 2);
+
+
+			tdoc.populateContrahents(producent, dostawca, wlasciciel,odbiorca);
+			tdoc.setContrahMappings(mapProd, mapDost, mapWlasc, mapOdb);
 
 		} catch (SQLException e) {
 			Logger.e(Logger.getMethodName(), "populate contrahents failed " + e.getMessage());
@@ -352,7 +410,7 @@ public class Document extends JFrame implements ActionListener {
 				this.enablePanel(2);
 				table.setDelBtnEnabled(false);
 				table.setEditBtnEnabled(false);
-				
+
 			}
 
 		} catch (SQLException e1) {
@@ -495,6 +553,64 @@ class JmTextField extends JTextField implements Access {
 	}
 
 }
+
+class JmTextArea extends JTextArea implements Access {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -364423020863064232L;
+	private String actionCommand ;
+	private boolean isAccessable = false;
+
+	public boolean isAccessable() {
+		return isAccessable;
+	}
+
+	public void setActionCommand(String command){
+		actionCommand = command;
+	}
+	
+	public JmTextArea() {
+
+	}
+
+	public JmTextArea(JPanel panel, String name, int x, int y, FocusListener fl, boolean isAccessable) {
+
+		this(panel, name, x, y, 1, 1, 1, 1, fl, isAccessable);
+	}
+
+	public JmTextArea(JPanel panel, String name,int rows,int x, int y, int w, int h, int weight, FocusListener fl, boolean isAccessable) {
+
+		GridBagConstraints gbc = new GridBagConstraints();
+		gbc.insets = new Insets(0, 0, 5, 5);
+		gbc.fill = GridBagConstraints.HORIZONTAL;
+		gbc.gridwidth = w;
+		gbc.gridheight = h;
+		gbc.gridx = x;
+		gbc.gridy = y;
+		gbc.weightx = weight;
+		this.setName(name);
+		this.setActionCommand(name);
+		this.addFocusListener(fl);
+		this.isAccessable = isAccessable;
+		this.setRows(rows);
+		panel.add(this, gbc);
+	}
+
+	@Override
+	public String getOutput() {
+		return super.getText();
+	}
+
+	@Override
+	public void clear() {
+		this.setText("");
+	}
+
+}
+
+
 
 class JmComboBox extends JComboBox implements Access {
 
