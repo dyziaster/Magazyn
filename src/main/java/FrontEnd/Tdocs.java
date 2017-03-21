@@ -202,7 +202,7 @@ public class Tdocs extends JPanel {
 	public void saveDocs(String t_doc_id) throws SQLException {
 
 		List<String> columns = model.getColumnNamesWithoutID("t_doc_s");
-
+		
 		String docId = t_doc_id;
 		String delete = "0";
 		String view = "1";
@@ -221,13 +221,13 @@ public class Tdocs extends JPanel {
 		String uwag = uwagi.getOutput();
 		String kod1 = this.kod1.getOutput();
 		String kod2 = this.kod2.getOutput();
-		List<String> values = Arrays.asList(docId, delete, view, magId, partiaZew, partiaWew, towId, dataPolowu, dataZamrozenia, dataProdukcji, dataTrwalosci, netto, waga, brutto, szt, kod1, kod2, uwag);
+		List<String> values = Arrays.asList(docId, delete, view, magId, partiaZew, partiaWew, towId, dataPolowu, dataZamrozenia, dataProdukcji, dataTrwalosci, netto, waga, brutto, szt, kod1, kod2, uwag, "-1");
 		String querry = Utils.getSqlValuesStringFromList(values, "t_doc_s", columns);
 		System.out.println("size v=" + values.size() + " size col=" + columns.size());
 		System.out.println("columns : " + columns);
 		model.executeUpdate(querry);
-
 		idToUpdate = Utils.getFirstRecordFromRS(model.executeQuerry("SELECT id FROM t_doc_s WHERE id = (SELECT MAX(id) FROM t_doc_s);"));
+		model.executeUpdate("update t_doc_s set doc_s_join_doc ='"+idToUpdate+"' where id ='"+idToUpdate+"';");
 
 	}
 
